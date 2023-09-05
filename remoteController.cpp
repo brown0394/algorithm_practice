@@ -22,7 +22,7 @@ private:
 	int setMatch();
 	void setButtons();
 	int addUp(char* arr, int cur);
-	int subtractDown(char* arr, int cur);
+	int subtractDown(char* arr, int cur, int size);
 	void processUnmatch(char* tempChannel, char* tempChannel2, int& tempChannelLength, int targetChannel, int idx);
 public:
 	RemoteController(int p_brokenButtonSize, int p_workingButtonSize, char* p_targetChannel);
@@ -80,11 +80,11 @@ int RemoteController::addUp(char* arr, int cur) {
 			arr[cur] = workingButtons[0];
 		}
 		else {
-			if (numInfo[arr[cur]+1].match) {
+			if (numInfo[arr[cur] -'0' + 1].match) {
 				++arr[cur];
 			}
 			else {
-				arr[cur] = numInfo[arr[cur]].next;
+				arr[cur] = numInfo[arr[cur] - '0'].next;
 			}
 			break;
 		}
@@ -103,9 +103,14 @@ int RemoteController::addUp(char* arr, int cur) {
 	return 0;
 }
 
-int RemoteController::subtractDown(char* arr, int cur) {
+int RemoteController::subtractDown(char* arr, int cur, int size) {
 	if (cur == 0) {
-		arr[0] = '0';
+		if (size > 1) {
+			arr[0] = '0';
+		}
+		else {
+			arr[0] = workingButtons[workingButtonSize - 1];
+		}
 		return 1;
 	}
 	arr[cur--] = workingButtons[workingButtonSize - 1];
@@ -113,6 +118,7 @@ int RemoteController::subtractDown(char* arr, int cur) {
 		if (arr[cur] == workingButtons[0]) {
 			if (cur == 0) {
 				arr[0] = '0';
+				break;
 			}
 			arr[cur] = workingButtons[workingButtonSize - 1];
 		}
@@ -162,7 +168,7 @@ void RemoteController::setButtons() {
 
 	int buttonCount = setMatch();
 	if (buttonCount > 0) {
-		char lastWorkingButton = workingButtons[buttonCount-1];
+		char lastWorkingButton = workingButtons[buttonCount - 1];
 		int WorkingButtonIdx = 0;
 		for (int i = 0; i < 10; ++i) {
 			if (numInfo[i].match) {
@@ -187,7 +193,7 @@ void RemoteController::processUnmatch(char* tempChannel, char* tempChannel2, int
 	}
 	else if (targetChannel[idx] < workingButtons[0]) {
 		tempChannel[idx] = workingButtons[0];
-		subtractDown(tempChannel2, idx);
+		subtractDown(tempChannel2, idx, targetLength);
 	}
 	else {
 		tempChannel[idx] = numInfo[targetChannel[idx] - '0'].next;
@@ -208,7 +214,7 @@ int RemoteController::calcButtonPressCount() {
 	int result = getDiff(target, CURCHANNEL);
 	if (workingButtonSize > 0) {
 		int targetLength = strlen(targetChannel);
-		char* tempChannel = new char[targetLength+2];
+		char* tempChannel = new char[targetLength + 2];
 		int resultByButton = -1;
 		int tempChannelLength = targetLength;
 		for (int i = 0; i < targetLength; ++i) {
@@ -216,7 +222,7 @@ int RemoteController::calcButtonPressCount() {
 				tempChannel[buttonCount++] = targetChannel[i];
 			}
 			else {//when it does not match
-				char* tempChannel2 = new char[targetLength+2];
+				char* tempChannel2 = new char[targetLength + 2];
 				std::copy(tempChannel, tempChannel + buttonCount, tempChannel2);
 				processUnmatch(tempChannel, tempChannel2, tempChannelLength, targetLength, i);
 				tempChannel[tempChannelLength] = '\0';
@@ -250,7 +256,7 @@ int main() {
 	int brokenButtonSize = 0;
 	scanf_s("%s", targetChannel, 7);
 	scanf_s("%d", &brokenButtonSize);
-	
+
 	RemoteController remoteCont(brokenButtonSize, 10 - brokenButtonSize, targetChannel);
 
 	printf("%d\n", remoteCont.calcButtonPressCount());
