@@ -1,13 +1,13 @@
 #include <iostream>
-#include <vector>
 #include <queue>
+#include <vector>
+#include <algorithm>
 
 typedef struct  node;
 struct node {
-	std::vector<node*> children;
-	node* parent;
+	node** children;
 	int num;
-	char command;
+	std::vector <char> command;
 };
 
 
@@ -18,8 +18,7 @@ private :
 	int L(int num);
 	int R(int num);
 	node* getNewNode(node* parent, int num, char command);
-	void addChildren(node* cur, bool isAlreadCreated);
-	std::vector<char> answer;
+	char addChildren(node* cur, int target);
 	node* root;
 public:
 	void calcMinCombination(int intitialReg, int target);
@@ -28,7 +27,6 @@ public:
 };
 
 minCommandCalculator::minCommandCalculator() : root(nullptr) {
-	answer.reserve(100);
 }
 
 minCommandCalculator::~minCommandCalculator() {
@@ -38,8 +36,8 @@ minCommandCalculator::~minCommandCalculator() {
 		node* temp;
 		while (!q.empty()) {
 			temp = cur;
-			for (auto iter = cur->children.begin(); iter != cur->children.end(); ++iter) {
-				q.push(*iter);
+			for (int i = 0; i < 4; ++i) {
+				q.push(cur->children[i]);
 			}
 			cur = q.front();
 			q.pop();
@@ -70,56 +68,63 @@ int minCommandCalculator::R(int num) {
 
 node* minCommandCalculator::getNewNode(node* parent, int num, char command) {
 	node* newNode = new node;
-	newNode->parent = parent;
-	newNode->children.reserve(4);
+	newNode->children = new node * [4] {nullptr};
 	newNode->num = num;
-	newNode->command = command;
+	if (parent != nullptr) {
+		std::copy(parent->command.begin(), parent->command.end(), std::back_inserter(newNode->command));
+		newNode->command.push_back(command);
+	}
 	return newNode;
 }
 
-void minCommandCalculator::addChildren(node* cur, bool isAlreadCreated) {
-	if (isAlreadCreated) {
-		cur->children[0]->num = D(cur->num);
-		cur->children[1]->num = S(cur->num);
-		cur->children[2]->num = L(cur->num);
-		cur->children[3]->num = R(cur->num);
-	}
-	else {
-		cur->children.push_back(getNewNode(cur, D(cur->num), 'D'));
-		cur->children.push_back(getNewNode(cur, S(cur->num), 'S'));
-		cur->children.push_back(getNewNode(cur, L(cur->num), 'L'));
-		cur->children.push_back(getNewNode(cur, R(cur->num), 'R'));
-	}
+char minCommandCalculator::addChildren(node* cur, int target) {
+	int calcD = D(cur->num);
+	if (calcD == target) return 'D';
+	int calcS = S(cur->num);
+	if (calcS == target) return 'S';
+	int calcL = L(cur->num);
+	if (calcL == target) return 'L';
+	int calcR = R(cur->num);
+	if (calcR == target) return 'R';
+
+	cur->children[0] = getNewNode(cur, calcD, 'D');
+	cur->children[1] = getNewNode(cur, calcS, 'S');
+	cur->children[2] = getNewNode(cur, calcL, 'L');
+	cur->children[3] = getNewNode(cur, calcR, 'R');
+	return '\0';
 }
 
 void minCommandCalculator::calcMinCombination(int intitialReg, int target) {
 	node* cur;
+	node* temp;
 	std::queue<node*> q;
-	if (root == nullptr) {
-		root = getNewNode(nullptr, intitialReg, '\0');
-	}
-	else {
-		root->num = intitialReg;
-	}
+	root = getNewNode(nullptr, intitialReg, '\0');
 	cur = root;
-	while (cur->num != target) {
-		addChildren(cur, !cur->children.empty());
+	char last;
+	while (true) {
+		last = addChildren(cur, target);
+		if (last != '\0') {
+			break;
+		}
 		for (int i = 0; i < 4; ++i) {
 			q.push(cur->children[i]);
 		}
+		temp = cur;
 		cur = q.front();
+		delete temp;
 		q.pop();
 	}
-	while (cur != root) {
-		answer.push_back(cur->command);
-		cur = cur->parent;
+	while (!q.empty()) {
+		temp = q.front();
+		q.pop();
+		delete temp;
 	}
-	for (auto iter = answer.rbegin(); iter != answer.rend(); ++iter) {
+	for (auto iter = cur->command.begin(); iter != cur->command.end(); ++iter) {
 		printf("%c", *iter);
 	}
-	printf("\n");
-	answer.clear();
-	
+	printf("%c\n", last);
+	delete cur;
+	root = nullptr;
 }
 
 int main() {
