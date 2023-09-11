@@ -1,141 +1,118 @@
 #include <iostream>
 #include <queue>
-#include <vector>
-#include <algorithm>
+#include <cstring>
 
-typedef struct  node;
-struct node {
-	node** children;
-	int num;
-	std::vector <char> command;
+
+class node {
+public:
+	unsigned short int num;
+	char* commands;
+	node(unsigned short int num, char* str, char command);
+	~node();
 };
 
+node::node(unsigned short int p_num, char* p_commands, char p_command) : num(p_num), commands(nullptr) {
+	int len = strlen(p_commands) + 2;
+	commands = new char[len];
+	if (len > 2) {
+		strcpy(commands, p_commands);
+	}
+	commands[len - 2] = p_command;
+	commands[len - 1] = '\0';
+}
+node:: ~node() {
+	delete[] commands;
+}
 
 class minCommandCalculator {
-private :
-	int D(int num);
-	int S(int num);
-	int L(int num);
-	int R(int num);
-	node* getNewNode(node* parent, int num, char command);
-	char addChildren(node* cur, int target);
-	node* root;
+private:
+	unsigned short int D(unsigned short int num);
+	unsigned short int S(unsigned short int num);
+	unsigned short int L(unsigned short int num);
+	unsigned short int R(unsigned short int num);
+	char addChildren(unsigned short int target);
+	std::queue<node*> q;
+	bool alreadyVisited[10000];
+	void visitCheckAndPush(node* cur, unsigned int calcVal, char command);
 public:
-	void calcMinCombination(int intitialReg, int target);
-	minCommandCalculator();
-	~minCommandCalculator();
+	void calcMinCombination(unsigned short int intitialReg, unsigned short int target);
 };
 
-minCommandCalculator::minCommandCalculator() : root(nullptr) {
-}
 
-minCommandCalculator::~minCommandCalculator() {
-	if (root != nullptr) {
-		std::queue<node*> q;
-		node* cur = root;
-		node* temp;
-		while (!q.empty()) {
-			temp = cur;
-			for (int i = 0; i < 4; ++i) {
-				q.push(cur->children[i]);
-			}
-			cur = q.front();
-			q.pop();
-			delete temp;
-		}
-	}
-}
-
-int minCommandCalculator::D(int num) {
+inline unsigned short int minCommandCalculator::D(unsigned short int num) {
 	return (num << 1) % 10000;
 }
 
-int minCommandCalculator::S(int num) {
+inline unsigned short int minCommandCalculator::S(unsigned short int num) {
 	if (num) {
 		return --num;
 	}
 	return 9999;
 }
 
-int minCommandCalculator::L(int num) {
+inline unsigned short int minCommandCalculator::L(unsigned short int num) {
 	return ((num % 1000) * 10) + num / 1000;
 }
 
-int minCommandCalculator::R(int num) {
+inline unsigned short int minCommandCalculator::R(unsigned short int num) {
 	int rot = num % 10;
 	return (num % 10) * 1000 + (num / 10);
 }
 
-node* minCommandCalculator::getNewNode(node* parent, int num, char command) {
-	node* newNode = new node;
-	newNode->children = new node * [4] {nullptr};
-	newNode->num = num;
-	if (parent != nullptr) {
-		std::copy(parent->command.begin(), parent->command.end(), std::back_inserter(newNode->command));
-		newNode->command.push_back(command);
+inline void minCommandCalculator::visitCheckAndPush(node* cur, unsigned int calcVal, char command) {
+	if (!alreadyVisited[calcVal]) {
+		q.push(new node(calcVal, cur->commands, command));
+		alreadyVisited[calcVal] = true;
 	}
-	return newNode;
 }
 
-char minCommandCalculator::addChildren(node* cur, int target) {
-	int calcD = D(cur->num);
+char minCommandCalculator::addChildren(unsigned short int target) {
+	node* cur = q.front();
+	unsigned short int calcD = D(cur->num);
 	if (calcD == target) return 'D';
-	int calcS = S(cur->num);
+	unsigned short int calcS = S(cur->num);
 	if (calcS == target) return 'S';
-	int calcL = L(cur->num);
+	unsigned short int calcL = L(cur->num);
 	if (calcL == target) return 'L';
-	int calcR = R(cur->num);
+	unsigned short int calcR = R(cur->num);
 	if (calcR == target) return 'R';
-
-	cur->children[0] = getNewNode(cur, calcD, 'D');
-	cur->children[1] = getNewNode(cur, calcS, 'S');
-	cur->children[2] = getNewNode(cur, calcL, 'L');
-	cur->children[3] = getNewNode(cur, calcR, 'R');
+	visitCheckAndPush(cur, calcD, 'D');
+	visitCheckAndPush(cur, calcS, 'S');
+	visitCheckAndPush(cur, calcL, 'L');
+	visitCheckAndPush(cur, calcR, 'R');
+	delete cur;
+	q.pop();
 	return '\0';
 }
 
-void minCommandCalculator::calcMinCombination(int intitialReg, int target) {
-	node* cur;
-	node* temp;
-	std::queue<node*> q;
-	root = getNewNode(nullptr, intitialReg, '\0');
-	cur = root;
-	char last;
-	while (true) {
-		last = addChildren(cur, target);
-		if (last != '\0') {
-			break;
-		}
-		for (int i = 0; i < 4; ++i) {
-			q.push(cur->children[i]);
-		}
-		temp = cur;
-		cur = q.front();
-		delete temp;
-		q.pop();
+void minCommandCalculator::calcMinCombination(unsigned short int initialReg, unsigned short int target) {
+	char init[1] = "";
+	q.push(new node(initialReg, init, '\0'));
+	char last = '\0';
+	while (last == '\0') {
+		last = addChildren(target);
 	}
-	while (!q.empty()) {
-		temp = q.front();
-		q.pop();
-		delete temp;
-	}
-	for (auto iter = cur->command.begin(); iter != cur->command.end(); ++iter) {
+	node* temp = q.front();
+	for (char* iter = temp->commands; *iter != '\0'; ++iter) {
 		printf("%c", *iter);
 	}
+	while (!q.empty()) {
+		delete q.front();
+		q.pop();
+	}
 	printf("%c\n", last);
-	delete cur;
-	root = nullptr;
+	std::fill_n(alreadyVisited, 10000, false);
 }
 
 int main() {
 	minCommandCalculator calc;
 	int testCases;
-	scanf_s("%d", &testCases);
+	scanf("%d", &testCases);
 
-	int initialReg;
-	int target;
+	unsigned short int initialReg;
+	unsigned short int target;
 	for (int i = 0; i < testCases; ++i) {
-		scanf_s("%d %d", &initialReg, &target);
+		scanf("%hu %hu", &initialReg, &target);
 		calc.calcMinCombination(initialReg, target);
 	}
 }
