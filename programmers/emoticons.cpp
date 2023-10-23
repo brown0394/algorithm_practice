@@ -8,7 +8,6 @@ using namespace std;
 struct node {
     int emoticonIdx;
     int discountIdx;
-    int* route;
 };
 
 vector<int> solution(vector<vector<int>> users, vector<int> emoticons) {
@@ -16,20 +15,22 @@ vector<int> solution(vector<vector<int>> users, vector<int> emoticons) {
     vector<float> discounts{0.6, 0.7, 0.8, 0.9};
     vector<float> discountRates{40, 30, 20, 10};
     stack<node> stk;
-    
+
     vector<int> userConsumed(users.size(), 0);
 
     int emoticonIdx;
     int sum;
-    int* route;
+    int route[7]{ 0 };
     int subscribers;
+    int discountIdx;
     int size = emoticons.size() - 1;
     int maxSubscribers = 0;
     int maxSum = 0;
-    stk.push(node{ 0, -1, new int[size + 1] {0} });
-    while (!stk.empty()) {
+    int rootDiscount = 0;
+    stk.push(node{ 0, 0 });
+    while (true) {
         emoticonIdx = stk.top().emoticonIdx;
-        route = stk.top().route;
+        discountIdx = stk.top().discountIdx;
         if (emoticonIdx == size) {
             sum = 0;
             subscribers = 0;
@@ -47,23 +48,41 @@ vector<int> solution(vector<vector<int>> users, vector<int> emoticons) {
                     ++subscribers;
                 }
             }
-            if (maxSubscribers > subscribers || (maxSubscribers == subscribers && sum > maxSum)) {
+            if (maxSubscribers < subscribers || (maxSubscribers == subscribers && sum > maxSum)) {
                 maxSum = sum;
                 maxSubscribers = subscribers;
             }
             route[size] = 0;
             stk.pop();
-        }
-        if (stk.top().discountIdx < 3) {
+            if (stk.empty()) break;
             ++stk.top().discountIdx;
-            route[emoticonIdx + 1] = stk.top().discountIdx;
-            stk.push(node{emoticonIdx+1 , stk.top().discountIdx, route})
+            continue;
+        }
+        if (discountIdx < 4) {
+            route[emoticonIdx + 1] = discountIdx;
+            stk.push(node{ emoticonIdx + 1 , 0 });
+        }
+        else {
+            if (stk.size() == 1) {
+                if (rootDiscount < 3) {
+                    ++rootDiscount;
+                    route[0] = rootDiscount;
+                    route[1] = 0;
+                    stk.top().discountIdx = 0;
+                    stk.push(node{ emoticonIdx + 1 , 0 });
+                    continue;
+                }
+            }
+            stk.pop();
+            if (stk.empty()) break;
+            ++stk.top().discountIdx;
+
         }
     }
 
 
-    answer[0] = lastSubscribers;
-    answer[1] = lastSum;
+    answer[0] = maxSubscribers;
+    answer[1] = maxSum;
     return answer;
 }
 int main() {
