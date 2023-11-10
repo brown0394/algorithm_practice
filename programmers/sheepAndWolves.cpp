@@ -24,14 +24,16 @@ void makeTree(vector <vector<int>>& tree, vector<vector<int>>& edges) {
         }
         tree[edges[i][0]].push_back(edges[i][1]);
     }
-    if (tree[0].size() > 1) {
-        tree[0].push_back(tree[0][1]);
-        tree[0][1] = tree[0][0];
+    if (!tree[0].empty()) {
+        if (tree[0].size() > 1) {
+            tree[0].push_back(tree[0][1]);
+            tree[0][1] = tree[0][0];
+        }
+        else {
+            tree[0].push_back(tree[0][0]);
+        }
+        tree[0][0] = 0;
     }
-    else {
-        tree[0].push_back(tree[0][0]);
-    }
-    tree[0][0] = 0;
 }
 
 void pruneTree(vector <vector<int>>& tree, vector<int>& info) {
@@ -66,11 +68,12 @@ int solution(vector<int> info, vector<vector<int>> edges) {
     int answer = 1;
     vector <vector<int>> tree(info.size());
     makeTree(tree, edges);
+    if (tree[0].empty()) return 0;
     pruneTree(tree, info);
     vector<bool> visit(1 << static_cast<int>(info.size()), true);
     queue<node> q;
     list<int>* leaves;
-    if (tree[0].size() > 1) {
+    if (tree[0].size() > 2) {
         q.push(node{ 1, list<int>{tree[0][1], tree[0][2]}, 1, 0 });
     }
     else {
