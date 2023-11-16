@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <stack>
+#include <string>
 
 int threeStarCount(unsigned int floor, unsigned int plus, unsigned int n) {
     unsigned int subFloor = floor;
@@ -23,56 +25,24 @@ int threeStarCount(unsigned int floor, unsigned int plus, unsigned int n) {
     return answer;
 }
 
-unsigned int threeStarCount(unsigned int floor, unsigned int plus, unsigned int n, unsigned int left,
-    unsigned int leftAdded, unsigned int subDone) {
-    unsigned int subFloor = floor;
-    unsigned int subCeil;
-    unsigned int answer = 0;
-    unsigned int between = 0;
-    unsigned int subPlus = plus;
-    while (subFloor <= n) {
-        subCeil = subFloor + ((subPlus - 2) << 1);
-        if (subCeil >= n) {
-            if ((subCeil - n) % 2 == 0) {
-                ++answer;
-            }
-        }
-        if (subPlus > 4) {
-            --subPlus;
-            ++between;
-        }
-        else {
-            if (left << 1 == leftAdded) break;
-            ++leftAdded;
-            ++subDone;
-            --plus;
-            subPlus = plus;
-            between = 0;
-        }
-        subFloor = (((subDone * 3) + between) * 9) + subPlus;
-    }
-    return answer;
-}
-
 unsigned int twoStarCount(unsigned int floor, unsigned int plus, unsigned int n, unsigned int subDone) {
     unsigned int subFloor = floor;
     unsigned int subCeil;
     unsigned int answer = 0;
     unsigned int between = 0;
-    unsigned int subPlus = plus;
     while (subFloor <= n) {
-        subCeil = subFloor + ((subPlus - 2) << 1);
+        subCeil = subFloor + ((plus - 2) << 1);
         if (subCeil >= n) {
             if ((subCeil - n) % 2 == 0) {
                 ++answer;
             }
         }
-        if (subPlus > 4) {
-            --subPlus;
+        if (plus > 4) {
+            --plus;
             ++between;
         }
         else break;
-        subFloor = ((subDone + between) * 9) + subPlus;
+        subFloor = ((subDone + between) * 9) + plus;
     }
     return answer;
 }
@@ -93,7 +63,16 @@ unsigned int searchSubSpace(unsigned int n, unsigned int right, unsigned int lef
             return 0;
         }
         case 2: { return twoStarCount(subDone * std::pow(3, right) + plus, plus, n, subDone); }
-        case 3: { return threeStarCount(subDone * std::pow(3, right) + plus, plus, n, left, leftAdded, subDone); }
+        case 3: { 
+            unsigned answer = 0;
+            unsigned int limit = left << 1;
+            for (int i = 0; leftAdded + i <= limit; ++i) {
+                answer += twoStarCount(subDone * std::pow(3, right) + plus, plus, n, subDone * 3);
+                ++subDone;
+                --plus;
+            }
+            return answer;
+        }
         }        
     }
     unsigned int answer = 0;
@@ -128,7 +107,59 @@ unsigned int searchSubSpace(unsigned int n, unsigned int right, unsigned int lef
     return answer;
 }
 
-unsigned int solution(unsigned int n) {
+struct node {
+    unsigned int num;
+    unsigned int mulLeft;
+    unsigned int plusLeft;
+    unsigned int plusCount;
+    unsigned int seq;
+    std::string path;
+};
+
+void dfs(unsigned int tripleCount, unsigned int n) {
+    std::stack<node> stk;
+    stk.push(node{ 3, tripleCount - 1, tripleCount << 1, 2, 0, "*"});
+    unsigned int num;
+    unsigned int mulLeft;
+    unsigned int plusLeft;
+    unsigned int plusCount;
+    unsigned int answer = 0;
+    unsigned int count = 0;
+    while (!stk.empty()) {
+        if (stk.top().seq > 1) {
+            stk.pop();
+            continue;
+        }
+        ++count;
+        num = stk.top().num;
+        mulLeft = stk.top().mulLeft;
+        plusLeft = stk.top().plusLeft;
+        plusCount = stk.top().plusCount;
+        if (!stk.top().seq) {
+            ++stk.top().seq;
+            if (mulLeft) {
+                stk.push(node{ num * 3, mulLeft - 1, plusLeft, plusCount + 2, 0, stk.top().path + "*"});
+            }
+            else {
+                if (num + plusLeft == n) {
+                    ++answer;
+                    std::cout << stk.top().path << std::endl;
+                }
+                stk.pop();
+            }
+        }
+        else {
+            ++stk.top().seq;
+            if (plusLeft && plusCount) {
+                stk.push(node{ num + 1, mulLeft, plusLeft - 1, plusCount - 1, 0, stk.top().path + "+" });
+            }
+            else stk.pop();
+        }
+    }
+    printf("dfs %d\n", answer);
+}
+
+int solution(int n) {
     unsigned int answer = 0;
     unsigned int tripleCount = 2;
     unsigned int floor = std::pow(3, tripleCount) + (tripleCount << 1);
@@ -136,6 +167,7 @@ unsigned int solution(unsigned int n) {
     if (n == 5) return 1;
     while (floor <= n) {
         if (ceil >= n) {
+            //dfs(tripleCount, n);
             if (tripleCount < 3) {
                 if ((ceil - n) % 2 == 0) {
                     ++answer;
@@ -177,9 +209,4 @@ unsigned int solution(unsigned int n) {
         floor = std::pow(3, tripleCount) + (tripleCount << 1);
     }
     return answer;
-}
-int main() {
-    unsigned int n;
-    std::cin >> n;
-    printf("%d\n", solution(n));
 }
