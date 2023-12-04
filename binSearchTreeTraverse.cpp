@@ -1,43 +1,70 @@
 #include <iostream>
 
-int main() {
+class node {
+public:
+	node* left;
+	node* right;
+	int num;
+	~node();
+	node(int p_num);
+};
+
+node::~node() {
+	if (left) delete left;
+	if (right) delete right;
+	printf("%d\n", num);
+}
+
+node::node(int p_num) : num(p_num), left(nullptr), right(nullptr) {}
+
+class bst {
+private:
+	node* root;
+
+public:
+	~bst();
+	bst();
+};
+
+bst::~bst() {
+	if (root) {
+		delete root;
+	}
+}
+
+bst::bst() {
 	int in;
-	int stk[10000];
-	int idx = 1;
-	scanf_s("%d", &stk[0]);
-	while (std::cin >> in) {//scanf_s("%d", &in) != EOF) {
-		if (in > stk[idx - 1]) {
-			--idx;
-			while (idx) {
-				if (stk[idx - 1] < in) {
-					if (stk[idx - 1] > stk[idx]) {
-						printf("%d\n", stk[idx--]);
-					}
-					else {
-						int i = idx - 1;
-						while (i) {
-							if (stk[i] < stk[i - 1]) {
-								if (in > stk[i - 1]) {
-									for (; idx >= i; --idx) {
-										printf("%d\n", stk[idx]);
-									}
-								}
-								break;
-							}
-							--i;
-						}
-						break;
-					}
-				}
-				else {
+	scanf("%d", &in);
+	root = new node(in);
+	node* cur;
+	while (scanf("%d", &in) != EOF) {
+		cur = root;
+		while (true) {
+			if (in < cur->num) {
+				if (cur->left == nullptr) {
+					cur->left = new node(in);
 					break;
 				}
+				else {
+					cur = cur->left;
+				}
 			}
-			++idx;
+			else {
+				if (cur->right == nullptr) {
+					cur->right = new node(in);
+					delete cur->left;
+					cur->left = nullptr;
+					break;
+				}
+				else {
+					cur = cur->right;
+				}
+			}
 		}
-		stk[idx++] = in;
 	}
-	for (--idx; idx >= 0; --idx) {
-		printf("%d\n", stk[idx]);
-	}
+}
+
+
+int main() {
+	bst tree;
 }
