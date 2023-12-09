@@ -1,22 +1,22 @@
 #include <iostream>
 #include <vector>
-#include <queue>
+#include <algorithm>
+#include <map>
 
-#define INF 300000
-
+#define INF 3000000
 class node {
 public:
 	int idx;
-	int cost;
-	node(int p_idx, int p_cost);
+	int* cost;
+	node(int p_idx, int* p_cost);
 	bool operator <(const node& other) const;
 };
 
 bool node::operator<(const node& other) const {
-	return other.cost < this->cost;
+	return *other.cost < *this->cost;
 }
 
-node::node(int p_idx, int p_cost) {
+node::node(int p_idx, int* p_cost) {
 	idx = p_idx;
 	cost = p_cost;
 }
@@ -24,47 +24,58 @@ node::node(int p_idx, int p_cost) {
 int main() {
 	int vertexes, edges;
 	scanf("%d %d", &vertexes, &edges);
-	std::vector<std::vector<node>> arr(vertexes + 1);
+	std::vector<std::map<int, int>> arr(vertexes + 1);
 	int start;
 	scanf("%d", &start);
-	arr[start].reserve(vertexes + 1);
-	for (int i = 0; i <= vertexes; ++i) {
-		arr[start].push_back(node(i, INF));
-	}
 	int from, to, cost;
-	std::priority_queue<node> pq;
+	std::vector<node> pq;
+	std::vector<int> startArr(vertexes + 1, INF);
 	for (int i = 0; i < edges; ++i) {
 		scanf("%d %d %d", &from, &to, &cost);
 		if (from == start) {
-			arr[from][to].cost = cost;
-			pq.push(node(to, cost));
+			if (startArr[to] == INF) {
+				startArr[to] = cost;
+				pq.push_back(node(to, &startArr[to]));
+			}
+			else if (startArr[to] > cost) startArr[to] = cost;
 		}
 		else {
-			arr[from].push_back(node(to, cost));
-		}
-	}
-	int idx;
-	while (!pq.empty()) {
-		idx = pq.top().idx;
-		cost = pq.top().cost;
-		pq.pop();
-		for (int i = 0; i < arr[idx].size(); ++i) {
-			if (arr[idx][i].idx != start && arr[start][arr[idx][i].idx].cost >
-				cost + arr[idx][i].cost) {
-				arr[start][arr[idx][i].idx].cost = cost + arr[idx][i].cost;
-				pq.push(node(arr[idx][i].idx, arr[start][arr[idx][i].idx].cost));
+			auto found = arr[from].find(to);
+			if (found == arr[from].end()) {
+				arr[from].insert({ to, cost });
+			}
+			else if (found->second > cost) {
+				found->second = cost;
 			}
 		}
 	}
+	std::make_heap(pq.begin(), pq.end());
+	int idx;
+	while (!pq.empty()) {
+		std::pop_heap(pq.begin(), pq.end());
+		idx = pq.back().idx;
+		cost = *pq.back().cost;
+		pq.pop_back();
+		for (auto it = arr[idx].begin(); it != arr[idx].end(); ++it) {
+			if (it->first != start) {
+				if (startArr[it->first] > cost + it->second) {
+					startArr[it->first] = cost + it->second;
+					pq.push_back(node(it->first, &startArr[it->first]));
+					std::push_heap(pq.begin(), pq.end());
+				}
+			}
+		}
+	}
+	
 	for (int i = 1; i <= vertexes; ++i) {
 		if (i == start) {
 			printf("0\n");
 		}
-		else if (arr[start][i].cost == INF) {
+		else if(startArr[i] == INF) {
 			printf("INF\n");
 		}
 		else {
-			printf("%d\n", arr[start][i].cost);
+			printf("%d\n", startArr[i]);
 		}
 	}
 }
