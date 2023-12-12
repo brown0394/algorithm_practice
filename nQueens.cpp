@@ -9,46 +9,31 @@ struct node {
 
 class ChessBoard {
 private: 
-	std::vector<std::vector<int>> board;
+	std::vector<int> colQueenPlaced;
 	std::stack<node> stk;
 	int queens;
-	void setQueenAttackableLocs(int row, int col);
-	void unsetQueenAttackableLocs(int row, int col);
+	bool checkPromising(int row, int col);
 public:
 	ChessBoard(int p_queens);
 	int calcPossibleLocations();
 };
 
-ChessBoard::ChessBoard(int p_queens): board(p_queens+1, std::vector<int>(p_queens+1)), queens(p_queens) {
+ChessBoard::ChessBoard(int p_queens): colQueenPlaced(p_queens + 1), queens(p_queens) {
 }
 
-void ChessBoard::setQueenAttackableLocs(int row, int col) {
-	int side = 0;
-	for (int i = row; i <= queens; ++i) {
-		if (!board[i][col]) board[i][col] = row;
-		if (col + side <= queens && !board[i][col + side]) board[i][col + side] = row;
-		if (col - side >= 0 && !board[i][col - side]) board[i][col - side] = row;
-		++side;
+bool ChessBoard::checkPromising(int row, int col) {
+	for (int i = 1; i < row; ++i) {
+		if (col == colQueenPlaced[i] || abs(i - row) == abs(colQueenPlaced[i] - col)) {
+			return false;
+		}
 	}
-}
-
-void ChessBoard::unsetQueenAttackableLocs(int row, int col) {
-	int side = 0;
-	for (int i = row; i <= queens; ++i) {
-		if (board[i][col] == row) board[i][col] = 0;
-		if (col + side <= queens && board[i][col + side] == row) board[i][col + side] = 0;
-		if (col - side >= 0 && board[i][col - side] == row) board[i][col - side] = 0;
-		++side;
-	}
+	return true;
 }
 
 int ChessBoard::calcPossibleLocations() {
 	stk.push(node{ 1, 1 });
 	int locs = 0;
 	while (!stk.empty()) {
-		if (stk.top().col > 1) {
-			unsetQueenAttackableLocs(stk.top().row, stk.top().col - 1);
-		}
 		if (stk.top().col > queens) {
 			stk.pop();
 		}
@@ -57,8 +42,8 @@ int ChessBoard::calcPossibleLocations() {
 			int row = stk.top().row;
 			if (row < queens) {
 				for (; i <= queens; ++i) {
-					if (!board[row][i]) {
-						setQueenAttackableLocs(row, i);
+					if (checkPromising(row, i)) {
+						colQueenPlaced[row] = i;
 						stk.top().col = i + 1;
 						stk.push(node{ row + 1, 1 });
 						break;
@@ -70,8 +55,9 @@ int ChessBoard::calcPossibleLocations() {
 			}
 			else {
 				for (; i <= queens; ++i) {
-					if (!board[row][i]) {
+					if (checkPromising(row, i)) {
 						++locs;
+						break;
 					}
 				}
 				stk.pop();
