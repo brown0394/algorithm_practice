@@ -18,10 +18,7 @@ int main() {
 	int n;
 	scanf_s("%d", &n);
 
-	std::vector<std::vector<char>> draw(n);
-	for (int i = 0; i < n; ++i) {
-		draw[i].resize(n + i, ' ');
-	}
+	std::vector<std::vector<char>> draw(n, std::vector<char>((n << 1) - 1, ' '));
 	drawTriangle(draw, n, n-1, 0);
 	for (int i = 0; i < n; ++i) {
 		for (auto it = draw[i].begin(); it != draw[i].end(); ++it) {
