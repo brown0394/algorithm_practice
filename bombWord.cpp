@@ -8,68 +8,40 @@ private:
 	std::string bomb;
 	int bombLen;
 	int strLen;
-	int checkBomb(int i);
 public:
 	StringBomb();
 	void removeBomb();
-	void print();
 };
 
 StringBomb::StringBomb() {
 	std::cin >> str >> bomb;
-	bombLen = bomb.size();
+	bombLen = bomb.size() - 1;
 	strLen = str.size();
 }
 
-int StringBomb::checkBomb(int i) {
-	int init = i;
-	std::vector<int> trace;
-	if (i + bombLen <= strLen) {
-		for (int j = 0; j < bombLen; ++j) {
-			if (str[i + j] == '-') {
-				++i;
-				--j;
-				continue;
-			}
-			if (j && str[i + j] == bomb[0]) {
-				int val = checkBomb(i + j);
-				if (val != i + j) {
-					--j;
-					i = val - j;
-					continue;
-				}
-			}
-			if (str[i + j] != bomb[j]) {
-				for (int k = 0; k < trace.size(); ++k) {
-					str[trace[k]] = bomb[k];
-				}
-				return init;
-			}
-			trace.push_back(i + j);
-			str[i + j] = '-';
-		}
-		return i + bombLen - 1;
-	}
-	return i;
-}
-
 void StringBomb::removeBomb() {
-	bool frula = true;
+	int idx = 0;
 	for (int i = 0; i < strLen; ++i) {
-		if (str[i] == bomb[0]) {
-			int val = checkBomb(i);
-			if (val == i) {
-				printf("%c", str[i]);
-				frula = false;
+		if (str[i] == bomb[bombLen] && idx >= bombLen) {
+			str[idx] = str[i];
+			int j = 0;
+			for (; j <= bombLen; ++j) {
+				if (str[idx - j] != bomb[bombLen - j]) break;
 			}
-			else i = val;
+			if (j > bombLen) idx -= bombLen;
+			else ++idx;
 		}
-		else if (str[i] != '-') {
-			printf("%c", str[i]);
-			frula = false;
+		else {
+			str[idx++] = str[i];
 		}
 	}
-	if (frula) printf("FRULA\n");
+	if (idx) {
+		for (int i = 0; i < idx; ++i) {
+			printf("%c", str[i]);
+		}
+		printf("\n");
+	}
+	else printf("FRULA\n");
 }
 
 int main() {
