@@ -77,34 +77,27 @@ void air::spreadDust() {
 
 void air::purifyDust() {
 	totalDust -= (arr[airPurifier[0] - 1][0] + arr[airPurifier[1] + 1][0]);
-	int temp1 = arr[airPurifier[0]][colLen];
-	int temp2 = arr[airPurifier[1]][colLen];
-	std::memcpy(&arr[airPurifier[0]][2], &arr[airPurifier[0]][1], (colLen - 1) * 4);
-	std::memcpy(&arr[airPurifier[1]][2], &arr[airPurifier[1]][1], (colLen - 1) * 4);
-	int temp3 = arr[0][0];
-	int temp4 = arr[rowLen][0];
-	std::memcpy(&arr[0][0], &arr[0][1], colLen * 4);
-	std::memcpy(&arr[rowLen][0], &arr[rowLen][1], colLen * 4);
-	bool checked = true;
-	int idx = 1;
-	while (checked) {
-		checked = false;
-		if (airPurifier[0] > idx) {
-			checked = true;
-			arr[airPurifier[0] - idx][0] = arr[airPurifier[0] - idx - 1][0];
-			arr[idx - 1][colLen] = arr[idx][colLen];
-		}
-		if (airPurifier[1] + idx < rowLen) {
-			checked = true;
-			arr[airPurifier[1] + idx][0] = arr[airPurifier[1] + idx + 1][0];
-			arr[row - idx][colLen] = arr[row - (idx+1)][colLen];
-		}
-		++idx;
+
+	for (int i = airPurifier[0] - 1; i >= 1; --i) {
+		arr[i][0] = arr[i - 1][0];
 	}
-	arr[airPurifier[0] - 1][colLen] = temp1;
-	arr[airPurifier[1] + 1][colLen] = temp2;
-	arr[1][0] = temp3;
-	arr[rowLen - 1][0] = temp4;
+	for (int i = airPurifier[1] + 1; i < rowLen; ++i) {
+		arr[i][0] = arr[i + 1][0];
+	}
+	for (int i = 0; i < colLen; ++i) {
+		arr[0][i] = arr[0][i + 1];
+		arr[rowLen][i] = arr[rowLen][i + 1];
+	}
+	for (int i = 0; i < airPurifier[0]; ++i) {
+		arr[i][colLen] = arr[i + 1][colLen];
+	}
+	for (int i = rowLen; i > airPurifier[1]; --i) {
+		arr[i][colLen] = arr[i - 1][colLen];
+	}
+	for (int i = colLen; i > 1; --i) {
+		arr[airPurifier[0]][i] = arr[airPurifier[0]][i - 1];
+		arr[airPurifier[1]][i] = arr[airPurifier[1]][i - 1];
+	}
 	arr[airPurifier[0]][1] = 0;
 	arr[airPurifier[1]][1] = 0;
 }
@@ -132,10 +125,8 @@ void air::print() {
 int air::getTotalDustAtT(int time) {
 	for (int i = 0; i < time; ++i) {
 		spreadDust();
-		print();
 		purifyDust();
 		setDust();
-		print();
 	}
 	return totalDust;
 }
