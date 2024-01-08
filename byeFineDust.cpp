@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <memory>
+#include <cstring>
 
 struct node {
 	int i;
@@ -21,6 +21,7 @@ private:
 	void spreadDust();
 	void purifyDust();
 	void setDust();
+	void print();
 public:
 	air(int p_row, int p_col);
 	~air();
@@ -47,33 +48,29 @@ air::air(int p_row, int p_col):row(p_row), col(p_col) {
 }
 
 air::~air() {
-	for (int i = 0; i < row; ++i) {
-		delete[] arr[i];
-	}
 	delete[] arr;
 }
 
 void air::spreadDust() {
-	int remain = 0, spread;
+	int spread;
 	for (auto it = dusts.begin(); it != dusts.end(); ++it) {
 		spread = it->dust / 5;
 		if (it->i + 1 < row && arr[it->i + 1][it->j] != -1) {
 			arr[it->i + 1][it->j] += spread;
-			++remain;
+			arr[it->i][it->j] -= spread;
 		}
 		if (it->i - 1 >= 0 && arr[it->i - 1][it->j] != -1) {
 			arr[it->i - 1][it->j] += spread;
-			++remain;
+			arr[it->i][it->j] -= spread;
 		}
 		if (it->j + 1 < col) {
 			arr[it->i][it->j + 1] += spread;
-			++remain;
+			arr[it->i][it->j] -= spread;
 		}
-		if (it->j - 1 < row && arr[it->i][it->j - 1] != -1) {
+		if (it->j - 1 >= 0 && arr[it->i][it->j - 1] != -1) {
 			arr[it->i][it->j - 1] += spread;
-			++remain;
+			arr[it->i][it->j] -= spread;
 		}
-		arr[it->i][it->j] -= (spread * remain);
 	}
 	dusts.clear();
 }
@@ -82,15 +79,14 @@ void air::purifyDust() {
 	totalDust -= (arr[airPurifier[0] - 1][0] + arr[airPurifier[1] + 1][0]);
 	int temp1 = arr[airPurifier[0]][colLen];
 	int temp2 = arr[airPurifier[1]][colLen];
-	std::memcpy(&arr[airPurifier[0]][2], &arr[airPurifier[0]][1], col - 3);
-	std::memcpy(&arr[airPurifier[1]][2], &arr[airPurifier[1]][1], col - 3);
+	std::memcpy(&arr[airPurifier[0]][2], &arr[airPurifier[0]][1], (colLen - 1) * 4);
+	std::memcpy(&arr[airPurifier[1]][2], &arr[airPurifier[1]][1], (colLen - 1) * 4);
 	int temp3 = arr[0][0];
 	int temp4 = arr[rowLen][0];
-	std::memcpy(&arr[0][0], &arr[0][1], col - 2);
-	std::memcpy(&arr[rowLen][0], &arr[rowLen][1], col - 2);
+	std::memcpy(&arr[0][0], &arr[0][1], colLen * 4);
+	std::memcpy(&arr[rowLen][0], &arr[rowLen][1], colLen * 4);
 	bool checked = true;
 	int idx = 1;
-	int temp;
 	while (checked) {
 		checked = false;
 		if (airPurifier[0] > idx) {
@@ -98,10 +94,10 @@ void air::purifyDust() {
 			arr[airPurifier[0] - idx][0] = arr[airPurifier[0] - idx - 1][0];
 			arr[idx - 1][colLen] = arr[idx][colLen];
 		}
-		if (airPurifier[1] + idx + 1 < rowLen) {
+		if (airPurifier[1] + idx < rowLen) {
 			checked = true;
 			arr[airPurifier[1] + idx][0] = arr[airPurifier[1] + idx + 1][0];
-			arr[airPurifier[1] + idx + 1][colLen] = arr[airPurifier[1] + idx][colLen];
+			arr[row - idx][colLen] = arr[row - (idx+1)][colLen];
 		}
 		++idx;
 	}
@@ -109,16 +105,25 @@ void air::purifyDust() {
 	arr[airPurifier[1] + 1][colLen] = temp2;
 	arr[1][0] = temp3;
 	arr[rowLen - 1][0] = temp4;
+	arr[airPurifier[0]][1] = 0;
+	arr[airPurifier[1]][1] = 0;
 }
 
 void air::setDust() {
+	for (int i = 0; i < row; ++i) {
+		for (int j = 0; j < col; ++j) {
+			if (arr[i][j] > 4) {
+				dusts.push_back({ i, j, arr[i][j] });
+			}
+		}
+	}
+}
+
+void air::print() {
 	printf("\n\n");
 	for (int i = 0; i < row; ++i) {
 		for (int j = 0; j < col; ++j) {
 			printf("%d ", arr[i][j]);
-			if (arr[i][j] > 0) {
-				dusts.push_back({ i, j, arr[i][j] });
-			}
 		}
 		printf("\n");
 	}
@@ -127,8 +132,10 @@ void air::setDust() {
 int air::getTotalDustAtT(int time) {
 	for (int i = 0; i < time; ++i) {
 		spreadDust();
+		print();
 		purifyDust();
 		setDust();
+		print();
 	}
 	return totalDust;
 }
