@@ -55,7 +55,8 @@ void cheeseRefrig::print() {
 	printf("\n\n");
 	for (int i = 0; i < row; ++i) {
 		for (int j = 0; j < col; ++j) {
-			printf("%d ", arr[i][j]);
+			if (arr[i][j] == 1) printf("%d ", arr[i][j]);
+			else printf("0 ");
 		}
 		printf("\n");
 	}
@@ -99,43 +100,47 @@ void cheeseRefrig::checkAir() {
 
 int cheeseRefrig::getmeltingTime() {
 	int timePassed = 0;
+	int air = 2;
 	checkAir();
-	print();
 	int exposed;
-	std::vector<node> toCheck;
+	std::vector<cheese> toCheck;
 	std::set<cheese>* temp;
 	toCheck.reserve(4);
 	while (!outerCheese->empty()) {
 		++timePassed;
+		++air;
 		for (auto it = outerCheese->begin(); it != outerCheese->end(); ++it) {
 			exposed = 0;
 			if (it->i + 1 < row) {
-				if (arr[it->i + 1][it->j] == 2) ++exposed;
-				else toCheck.push_back({ it->i + 1, it->j });
+				if (arr[it->i + 1][it->j] < 2) toCheck.push_back({ it->i + 1, it->j });
+				else if (arr[it->i + 1][it->j] < air) ++exposed;
 			}
 			if (it->i - 1 >= 0) {
-				if (arr[it->i - 1][it->j] == 2) ++exposed;
-				else toCheck.push_back({ it->i - 1, it->j });
+				if (arr[it->i - 1][it->j] < 2) toCheck.push_back({ it->i - 1, it->j });
+				else if (arr[it->i - 1][it->j] < air) ++exposed;
 			}
 			if (it->j + 1 < col) {
-				if (arr[it->i][it->j + 1] == 2) ++exposed;
-				else toCheck.push_back({ it->i, it->j + 1});
+				if (arr[it->i][it->j + 1] < 2) toCheck.push_back({ it->i, it->j + 1 });
+				else if (arr[it->i][it->j + 1] < air) ++exposed;
 			}
 			if (it->j - 1 >= 0) {
-				if (arr[it->i][it->j - 1] == 2) ++exposed;
-				else toCheck.push_back({ it->i, it->j - 1 });
+				if (arr[it->i][it->j - 1] < 2) toCheck.push_back({ it->i, it->j - 1 });
+				else if (arr[it->i][it->j - 1] < air) ++exposed;
 			}
 			if (exposed > 1) {
-				arr[it->i][it->j] = 2;
+				arr[it->i][it->j] = air;
 				for (auto it2 = toCheck.begin(); it2 != toCheck.end(); ++it2) {
 					if (!arr[it2->i][it2->j]) {
 						airQ.push({ it2->i, it2->j });
-						arr[it2->i][it2->j] = 2;
+						arr[it2->i][it2->j] = air;
 					}
-					else if (arr[it2->i][it2->j] == 1) nOuterCheese->insert({ it2->i, it2->j });
+					else if (arr[it2->i][it2->j] == 1) {
+						auto found = outerCheese->find(*it2);
+						if (found == outerCheese->end()) nOuterCheese->insert(*it2);
+					}
 				}
 			}
-			else nOuterCheese->insert({ it->i, it->j });
+			else nOuterCheese->insert(*it);
 			toCheck.clear();
 		}
 		temp = outerCheese;
@@ -143,7 +148,6 @@ int cheeseRefrig::getmeltingTime() {
 		nOuterCheese = temp;
 		nOuterCheese->clear();
 		checkAir();
-		print();
 	}
 	return timePassed;
 }
