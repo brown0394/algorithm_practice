@@ -22,12 +22,16 @@ private:
 	int sharkSize;
 	int fishAte;
 	int distanceMoved;
+	int fishI;
+	int fishJ;
+	int foundTime;
+	bool bfs();
 	std::queue<node> q;
 	void flushQ();
-	void eatFish();
 	std::vector<std::bitset<20>> visit;
 	void resetVisit();
 	void print();
+	
 public:
 	babyShark(int p_size);
 	int getMaxFishHunt();
@@ -68,82 +72,68 @@ void babyShark::flushQ() {
 	while (!q.empty()) q.pop();
 }
 
-void babyShark::eatFish() {
-	++fishAte;
-	if (fishAte == sharkSize) {
-		fishAte = 0;
-		++sharkSize;
-	}
-	print();
-}
-
-int babyShark::getMaxFishHunt() {
-
-	q.push({ cur.i, cur.j, 0 });
-	visit[cur.i][cur.j] = true;
-	arr[cur.i][cur.j] = 0;
+bool babyShark::bfs() {
 	int i, j, move;
+	bool found = false;
 	while (!q.empty()) {
 		i = q.front().i;
 		j = q.front().j;
 		move = q.front().move;
 		q.pop();
-		if (i - 1 >= 0 && !visit[i - 1][j] && arr[i - 1][j] <= sharkSize) {
-			if (arr[i - 1][j] < sharkSize && arr[i - 1][j]) {
-				arr[i - 1][j] = 0;
-				eatFish();
-				distanceMoved = move + 1;
-				flushQ();
-				resetVisit();
-				q.push({ i - 1, j, move + 1 });
-				continue;
+		if (found && move > foundTime) break;
+		if (arr[i][j] && arr[i][j] < sharkSize) {
+			if (found) {
+				if (fishI > i) {
+					fishI = i;
+					fishJ = j;
+				}
+				else if (fishI == i && fishJ > j) fishJ = j;
 			}
+			else {
+				found = true;
+				fishI = i;
+				fishJ = j;
+				foundTime = move;
+			}
+			continue;
+		}
+		if (i - 1 >= 0 && !visit[i - 1][j] && arr[i - 1][j] <= sharkSize) {
 			visit[i - 1][j] = true;
 			q.push({ i - 1, j, move + 1 });
 		}
 		if (j - 1 >= 0 && !visit[i][j - 1] && arr[i][j - 1] <= sharkSize) {
-			if (arr[i][j - 1] < sharkSize && arr[i][j - 1]) {
-				arr[i][j - 1] = 0;
-				eatFish();
-				distanceMoved = move + 1;
-				flushQ();
-				resetVisit();
-				q.push({ i, j - 1, move + 1 });
-				visit[i][j - 1] = true;
-				continue;
-			}
 			visit[i][j - 1] = true;
 			q.push({ i, j - 1, move + 1 });
 		}
 		if (j + 1 < len && !visit[i][j + 1] && arr[i][j + 1] <= sharkSize) {
-			if (arr[i][j + 1] < sharkSize && arr[i][j + 1]) {
-				arr[i][j + 1] = 0;
-				eatFish();
-				distanceMoved = move + 1;
-				flushQ();
-				resetVisit();
-				visit[i][j + 1] = true;
-				q.push({ i, j + 1, move + 1 });
-				continue;
-			}
 			visit[i][j + 1] = true;
 			q.push({ i, j + 1, move + 1 });
 		}
 		if (i + 1 < len && !visit[i + 1][j] && arr[i + 1][j] <= sharkSize) {
-			if (arr[i + 1][j] < sharkSize && arr[i + 1][j]) {
-				arr[i + 1][j] = 0;
-				eatFish();
-				distanceMoved = move + 1;
-				flushQ();
-				resetVisit();
-				visit[i + 1][j] = true;
-				q.push({ i + 1, j, move + 1 });
-				continue;
-			}
 			visit[i + 1][j] = true;
 			q.push({ i + 1, j, move + 1 });
 		}
 
+	}
+	return found;
+}
+
+int babyShark::getMaxFishHunt() {
+	q.push({ cur.i, cur.j, 0 });
+	visit[cur.i][cur.j] = true;
+	arr[cur.i][cur.j] = 0;
+	while (bfs()) {
+		arr[fishI][fishJ] = 0;
+		++fishAte;
+		if (fishAte == sharkSize) {
+			fishAte = 0;
+			++sharkSize;
+		}
+		distanceMoved = foundTime;
+		flushQ();
+		resetVisit();
+		q.push({ fishI, fishJ, foundTime });
+		visit[fishI][fishJ] = true;
 	}
 	return distanceMoved;
 }
