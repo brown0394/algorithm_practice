@@ -66,10 +66,22 @@ int main() {
 
 	for (int i = 0; i < round; ++i) {
 		if (!gameRec[FREQS][i]) {
-			bestScorePossible += (gameRec[gameRec[FREQ][i]][i] << 1);
-			if (gameRec[FREQ][i] == P) bestScorePossible += gameRec[S][i];
-			else if (gameRec[FREQ][i] == R) bestScorePossible += gameRec[P][i];
-			else bestScorePossible += gameRec[R][i];
+			int winFreq = (gameRec[gameRec[FREQ][i]][i] << 1);
+			int drawFreq = gameRec[gameRec[FREQ][i]][i];
+			if (gameRec[FREQ][i] == P) {
+				winFreq += gameRec[S][i];
+				drawFreq += (gameRec[R][i] * 2);
+			}
+			else if (gameRec[FREQ][i] == R) {
+				winFreq += gameRec[P][i];
+				drawFreq += (gameRec[S][i] * 2);
+			}
+			else {
+				winFreq += gameRec[R][i];
+				drawFreq += (gameRec[P][i] * 2);
+			}
+			if (winFreq > drawFreq) bestScorePossible += winFreq;
+			else bestScorePossible += drawFreq;
 		}
 		else if (gameRec[FREQS][i] == 1) {
 			if (gameRec[P][i] == gameRec[R][i]) {
