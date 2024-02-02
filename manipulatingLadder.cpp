@@ -28,7 +28,7 @@ private:
 	std::stack<node> stk;
 public:
 	ladderGame(int p_row, int p_col) : row(p_row), col(p_col),
-		ladders(p_row + 1),	laddersDest(p_col + 1), max(~(1 << 31)) {
+		ladders(p_row + 1),	laddersDest(p_col + 1), max((row * col) + 5) {
 		laddersPut = max;
 	}
 	inline void addLadderEdges(int edges);
