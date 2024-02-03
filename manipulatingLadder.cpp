@@ -16,7 +16,6 @@ private:
 	int row;
 	int col;
 	int laddersPut;
-	int max;
 	int laddersDiff;
 	std::vector<std::bitset<280>> ladders;
 	std::vector<int> laddersDest;
@@ -24,12 +23,11 @@ private:
 	void updateDests(int i, int j);
 	void revertChange();
 	void print();
-	void putLadder(int i, int j, int depth);
+	bool putLadder(int i, int j, int depth);
 	std::stack<node> stk;
 public:
 	ladderGame(int p_row, int p_col) : row(p_row), col(p_col),
-		ladders(p_row + 1),	laddersDest(p_col + 1), max((row * col) + 5) {
-		laddersPut = max;
+		ladders(p_row + 1),	laddersDest(p_col + 1) {
 	}
 	inline void addLadderEdges(int edges);
 	int getHowManyPathNeeded();
@@ -38,7 +36,7 @@ public:
 void ladderGame::addLadderEdges(int edges) {
 	int r, c;
 	for (int i = 0; i < edges; ++i) {
-		scanf_s("%d %d", &r, &c);
+		scanf("%d %d", &r, &c);
 		ladders[r][c] = true;
 	}
 }
@@ -87,7 +85,7 @@ void ladderGame::updateDests(int i, int j) {
 	}
 	int start1 = j;
 	int start2 = j + 1;
-	for (int k = i - 1; k >= 0; --k) {
+	for (int k = i - 1; k >= 1; --k) {
 		if (ladders[k][start1]) ++start1;
 		else if (ladders[k][start1 - 1]) --start1;
 		if (ladders[k][start2]) ++start2;
@@ -113,49 +111,57 @@ void ladderGame::revertChange() {
 	stk.pop();
 }
 
-void ladderGame::putLadder(int i, int j, int depth) {
-	if (j == col) {
+bool ladderGame::putLadder(int i, int j, int depth) {
+	if (j >= col) {
 		j = 1;
 		++i;
 	}
+	bool exit = false;
 	for (int k = i; k <= row; ++k) {
 		for (int l = j; l < col; ++l) {
-			while (ladders[k][l - 1] || ladders[k][l]) {
+			j = 1;
+			while (ladders[k][l - 1] || ladders[k][l] || ladders[k][l + 1]) {
 				++l;
 				if (l == col) {
 					l = 1;
 					++k;
-					if (k > row) return;
+					if (k > row) return false;
 				}
 			}
 			ladders[k][l] = true;
-			updateDests(k, l);
+			updateDests();
 			if (!laddersDiff) {
-				print();
-				printf("\n%d\n", depth + 1);
-				laddersPut = depth + 1;
+				//print();
+				//printf("\n%d\n", depth + 1);
+				exit = true;
 			}
-			else if (depth < laddersPut - 1) putLadder(k, l + 2, depth + 1);
+			else if (depth < laddersPut) exit = putLadder(k, l, depth + 1);
 			ladders[k][l] = false;
-			revertChange();
+			//revertChange();
+			if (exit) return true;
 		}
 	}
+	return false;
 }
 
 int ladderGame::getHowManyPathNeeded() {
-	print();
 	updateDests();
 	if (laddersDiff) {
-		putLadder(1, 1, 0);
+		laddersPut = 0;
+		while (laddersPut <= 2) {
+			//print();
+			if (putLadder(1, 1, 0)) break;
+			++laddersPut;
+		}
 	}
 	else return 0;
-	if (laddersPut == max) return -1;
-	return laddersPut;
+	if (laddersPut > 2) return -1;
+	return laddersPut + 1;
 }
 
 int main() {
 	int row, col, edges;
-	scanf_s("%d %d %d", &col, &edges, &row);
+	scanf("%d %d %d", &col, &edges, &row);
 	ladderGame ladder(row, col);
 	ladder.addLadderEdges(edges);
 	printf("%d\n", ladder.getHowManyPathNeeded());
