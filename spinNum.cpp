@@ -1,36 +1,39 @@
 #include <iostream>
 #include <vector>
 
-void getDiff(char one, char two, int* diffLeft, int* diffRight) {
-	if (one > two) {
-		*diffLeft = two + 10 - one;
-		*diffRight = one - two;
+int stacked;
+char start[10001];
+char target[10001];
+std::vector<std::vector<int>> record;
+
+int spinStack(int left, int depth) {
+	int diffLeft = 0, diffRight = 0;
+	int cur = (((start[depth] - '0') + left) % 10) + '0';
+	if (cur > target[depth]) {
+		diffLeft = target[depth] + 10 - cur;
+		diffRight = cur - target[depth];
 	}
-	else if (one < two) {
-		*diffLeft = one - two;
-		*diffRight = two + 10 - one;
+	else if (cur < target[depth]) {
+		diffLeft = target[depth] - cur;
+		diffRight = cur + 10 - target[depth];
 	}
-	else {
-		*diffLeft = 0;
-		*diffRight = 0;
+	if (depth == stacked - 1) {
+		if (diffLeft <= diffRight) record[depth][left] = diffLeft;
+		else record[depth][left] = diffRight;
+		return record[depth][left];
 	}
+	int nextLeft = (left + diffLeft) % 10;
+	if (record[depth + 1][nextLeft] == -1) record[depth + 1][nextLeft] = spinStack(nextLeft, depth + 1);
+	diffLeft += record[depth + 1][nextLeft];
+	if (record[depth + 1][left] == -1) record[depth + 1][left] = spinStack(left, depth + 1);
+	diffRight += record[depth + 1][left];
+	if (diffLeft <= diffRight) return diffLeft;
+	return diffRight;
 }
 
 int main() {
-	int stacked;
-	char start[6];
-	char target[6];
-	
-	scanf_s("%d %c", &stacked);
-	scanf_s("%s\n%s", start, target);
-	std::vector<int> spin(stacked + 1);
-	int lastDiffLeft, lastDiffRight;
-	getDiff(start[0], target[0], &lastDiffLeft, &lastDiffRight);
-	int left = 0;
-	int curDiffLeft, curDiffRight;
-	char l, r;
-	for (int i = 1; i < stacked; ++i) {
-
-	}
-	
+	scanf_s("%d", &stacked);
+	scanf_s("%s %s", start, 10001, target, 10001);
+	record.resize(stacked, std::vector<int>(10, -1));
+	printf("%d\n", spinStack(0, 0));
 }
