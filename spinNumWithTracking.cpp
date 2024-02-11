@@ -5,14 +5,19 @@ int stacked;
 char start[10001];
 char target[10001];
 
-struct node {
+class node {
+public:
 	int spin;
 	int next;
+	node() {
+		spin = -1;
+		next = -1;
+	}
 };
 
 std::vector<std::vector<node>> record;
 
-void getDiff(int cur, int depth, int* diffLeft, int* diffRight) {
+void getDiffLeftRight(int cur, int depth, int* diffLeft, int* diffRight) {
 	if (cur > target[depth]) {
 		*diffLeft = target[depth] + 10 - cur;
 		*diffRight = cur - target[depth];
@@ -25,7 +30,8 @@ void getDiff(int cur, int depth, int* diffLeft, int* diffRight) {
 
 int spinStack(int left, int depth) {
 	int diffLeft = 0, diffRight = 0;
-	getDiff((((start[depth] - '0') + left) % 10) + '0', depth, &diffLeft, &diffRight);
+	int cur = (((start[depth] - '0') + left) % 10) + '0';
+	getDiffLeftRight(cur, depth, &diffLeft, &diffRight);
 	if (depth == stacked - 1) {
 		if (diffLeft <= diffRight) record[depth][left].spin = diffLeft;
 		else record[depth][left].spin = diffRight;
@@ -48,36 +54,42 @@ int spinStack(int left, int depth) {
 
 void print() {
 	int left = 0;
-	int next;
+	int next = 0;
 	for (int j = 0; j < 10; ++j) {
 		if (record[0][j].next != -1) {
 			next = record[0][j].next;
 			break;
 		}
 	}
-	int k = 1;
-	while (true) {
+	for (int k = 1; k <= stacked; ++k) {
 		if (next > left) {
 			printf("%d %d\n", k, next - left);
 			left = next;
 		}
 		else {
-			int diffRight = 0;
-			int diffLeft = 0;
-			getDiff((((start[k - 1] - '0') + left) % 10) + '0', k - 1, &diffLeft, &diffRight);
-			if (diffRight) printf("%d %d\n", k, -diffRight);
-			else printf("%d 0\n", k);
+			if (k == stacked) {
+				int diffLeft = 0, diffRight = 0;
+				int cur = (((start[k-1] - '0') + left) % 10) + '0';
+				getDiffLeftRight(cur, k-1, &diffLeft, &diffRight);
+				if (diffLeft < diffRight) {
+					printf("%d %d\n", k, diffLeft);
+				}
+				else {
+					printf("%d %d\n", k, -diffRight);
+				}
+				break;
+			}
+			else printf("%d %d\n", k, record[k][left].spin - record[k-1][left].spin);
 		}
-		if (k == stacked) break;
-		next = record[k][next].next;
-		++k;
+		next = record[k][left].next;
 	}
 }
 
 int main() {
-	scanf("%d", &stacked);
-	scanf("%s %s", start, target);
-	record.resize(stacked, std::vector<node>(10, {-1, -1}));
-	printf("%d\n", spinStack(0, 0));
+	scanf_s("%d", &stacked);
+	scanf_s("%s %s", start, 10001, target, 10001);
+	record.resize(stacked, std::vector<node>(10));
+	record[0][0].spin = spinStack(0, 0);
+	printf("%d\n", record[0][0].spin);
 	print();
 }
