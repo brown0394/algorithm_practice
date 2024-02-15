@@ -1,102 +1,44 @@
 #include <iostream>
 #include <vector>
-#include <bitset>
 
-struct rec {
-	int smallerCase;
-	int biggerCase;
-	rec() {
-		smallerCase = -1;
-		biggerCase = -1;
-	}
-};
 
-struct node {
-	int num;
-	node* prev;
-	node* next;
-};
+int size;
+std::vector<std::vector<int>> record;
 
-class circList {
-private:
-	node* head;
-	node* last;
-public:
-	circList(int size);
-};
-
-circList::circList(int size) {
-	for (int i = 1; i <= size; ++i) {
-
-	}
-}
-
-class zigZag {
-private:
-	std::bitset<101> visited;
-	std::vector<std::vector<std::vector<rec>>> record;
-	std::vector<std::pair<int, int>> biggerSmaller;
-	int posCount;
-	int size;
-	void dfs(int depth, int num, bool bigger);
-	void countPossiblity();
-public:
-	zigZag(int p_size);
-};
-
-zigZag::zigZag(int p_size) : size(p_size),
-record(size + 1, std::vector<std::vector<rec>>(size, std::vector<rec>(size))),
-biggerSmaller(size + 1) {
-	int half = size >> 1;
-	if (size % 2) ++half;
-	for (int i = 1; i <= size; ++i) {
-		biggerSmaller[i].first = size - i;
-		biggerSmaller[i].second = size - biggerSmaller[i].first - 1;
-	}
-	int posCount = 0;
-}
-
-void zigZag::dfs(int depth, int num, bool bigger) {
-	if (depth == size) {
-		posCount = (posCount + 1) % 1000000;
-		return;
-	}
-	if (bigger) {
-		for (int i = num + 1; i <= size; ++i) {
-			if (!visited[i]) {
-				visited[i] = true;
-				dfs(depth + 1, i, !bigger);
-				visited[i] = false;
-			}
-		}
-		return;
-	}
-	else {
-		for (int i = num - 1; i >= 1; --i) {
-			if (!visited[i]) {
-				visited[i] = true;
-				dfs(depth + 1, i, !bigger);
-				visited[i] = false;
-			}
-		}
-	}
-}
-
-void zigZag::countPossiblity() {
-	if (size == 1) {
-		posCount = 1;
-		return;
-	}
-	for (int i = 1; i <= size; ++i) {
-		visited[i] = true;
-		dfs(1, i, true);
-		dfs(1, i, false);
-		visited[i] = false;
+void zigZag(int smaller, int bigger) {
+	int i = smaller;
+	int j = bigger - 1;
+	record[smaller][bigger] = 0;
+	while (j >= 0) {
+		if (record[j][i] == -1) zigZag(j, i);
+		record[smaller][bigger] = (record[smaller][bigger] + record[j][i]) % 1000'000;
+		++i;
+		--j;
 	}
 }
 
 int main() {
-	int size = 0;
 	scanf_s("%d", &size);
-
+	record.resize(size + 1, std::vector<int>(size + 1, -1));
+	for (int i = 1; i <= size; ++i) {
+		record[i][0] = 0;
+	}
+	record[0][0] = 1;
+	record[0][1] = 1;
+	int ans = 0;
+	int i = 0;
+	int j = size - 1;
+	if (j == 0 && i == 0) {
+		printf("1\n");
+		return 0;
+	}
+	while (j >= 0) {
+		if (record[j][i] == -1) zigZag(j, i);
+		ans = (ans + record[j][i]) % 1000'000;
+		if (record[i][j] == -1) zigZag(i, j);
+		ans = (ans + record[i][j]) % 1000'000;
+		++i;
+		--j;
+	}
+	printf("%d\n", ans);
 }
