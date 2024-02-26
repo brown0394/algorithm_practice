@@ -3,11 +3,14 @@
 int main() {
 	int n, nth;
 	scanf_s("%d %d", &n, &nth);
-	int digits[9]{ 0, 9, 90, 900, 9000, 90000, 900'000, 9'000'000, 90'000'000 };
+	long long digits[10]{ 0, 9, 90, 900, 9000, 90000, 900'000, 9'000'000, 90'000'000, 1'000'000'000 };
 	int base = 9;
-	if (n < 10) printf("%d\n", n);
+	if (nth < 10) {
+		if (n >= nth) printf("%d\n", nth);
+		else printf("-1\n");
+	}
 	else {
-		for (int i = 2; i < 9; ++i) {//10
+		for (int i = 2; i < 10; ++i) {
 			digits[i] *= i;
 			if (nth <= digits[i]) {
 				base = nth - (base + 1);
