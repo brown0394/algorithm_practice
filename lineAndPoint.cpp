@@ -19,27 +19,29 @@ double getDistance(point& one, point& two) {
 	return std::sqrt((x * x) + (y * y) + (z * z));
 }
 
+double getLength(point& one) {
+	return std::sqrt((one.x * one.x) + (one.y * one.y) + (one.z * one.z));
+}
+
 int main() {
-	point a, b, c, mid, mid2;
+	point a, b, c;
 	scanf_s("%lf %lf %lf %lf %lf %lf %lf %lf %lf", &a.x, &a.y, &a.z, &b.x, &b.y, &b.z, &c.x, &c.y, &c.z);
-	double distM, distM2, minDist = 0;
-	for (int i = 0; i < 10000; ++i) {
-		mid.x = ((a.x * 2) + b.x) / 3;
-		mid.y = ((a.y * 2) + b.y) / 3;
-		mid.z = ((a.z * 2) + b.z) / 3;
-		mid2.x = ((b.x * 2) + a.x) / 3;
-		mid2.y = ((b.y * 2) + a.y) / 3;
-		mid2.z = ((b.z * 2) + a.z) / 3;
-		distM = getDistance(mid, c);
-		distM2 = getDistance(mid2, c);
-		if (distM <= distM2) {
-			minDist = distM;
-			b = mid2;
-		}
-		else {
-			minDist = distM2;
-			a = mid;
-		}
+	b.x -= a.x;
+	b.y -= a.y;
+	b.z -= a.z;
+	c.x -= a.x;
+	c.y -= a.y;
+	c.z -= a.z;
+	double dotProd = (c.x * b.x) + (c.y * b.y) + (c.z * b.z);
+	double minDist;
+	if (dotProd <= 0) minDist = getLength(c);
+	else {
+		double lenB = getLength(b);
+		double proj = dotProd / ((b.x * b.x) + (b.y * b.y) + (b.z * b.z));
+		point projected {b.x * proj, b.y * proj, b.z * proj};
+		proj = getLength(projected);
+		if (lenB < proj) minDist = getDistance(b, c);
+		else minDist = getDistance(projected, c);
 	}
 	printf("%.10lf\n", minDist);
 }
