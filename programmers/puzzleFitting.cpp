@@ -13,6 +13,7 @@ struct node {
     int startJ;
     int endI;
     int endJ;
+    int offset;
     bool operator < (const node& other) {
         return blocks < other.blocks;
     }
@@ -22,30 +23,31 @@ void bfs(vector<vector<int>>& table, node& info, int block) {
     queue<pair<int, int>> q;
     q.push({ info.startI, info.startJ });
     int i, j, len = table.size();
+    const int MARK = BLOCK + info.offset;
     while (!q.empty()) {
         i = q.front().first;
         j = q.front().second;
         q.pop();
         if (i && table[i - 1][j] == block) {
-            table[i - 1][j] = BLOCK;
+            table[i - 1][j] = MARK;
             q.push({ i - 1, j });
             ++info.blocks;
             if (i - 1 < info.startI) info.startI = i - 1;
         }
         if (j && table[i][j - 1] == block) {
-            table[i][j - 1] = BLOCK;
+            table[i][j - 1] = MARK;
             q.push({ i, j - 1 });
             ++info.blocks;
             if (j - 1 < info.startJ) info.startJ = j - 1;
         }
         if (i + 1 < len && table[i + 1][j] == block) {
-            table[i + 1][j] = BLOCK;
+            table[i + 1][j] = MARK;
             q.push({ i + 1, j });
             ++info.blocks;
             if (i + 1 > info.endI) info.endI = i + 1;
         }
         if (j + 1 < len && table[i][j + 1] == block) {
-            table[i][j + 1] = BLOCK;
+            table[i][j + 1] = MARK;
             q.push({ i, j + 1 });
             ++info.blocks;
             if (j + 1 > info.endJ) info.endJ = j + 1;
@@ -54,11 +56,12 @@ void bfs(vector<vector<int>>& table, node& info, int block) {
 }
 
 void getBlockInfo(vector<vector<int>>& table, vector<node>& info, int block) {
+    int offset = 0;
     for (int i = 0, len = table.size(); i < len; ++i) {
         for (int j = 0, col = table[i].size(); j < col; ++j) {
             if (table[i][j] == block) {
                 table[i][j] = BLOCK;
-                info.push_back(node{ 1, i, j, i, j });
+                info.push_back(node{ 1, i, j, i, j, offset++ });
                 bfs(table, info.back(), block);
             }
             else if (table[i][j] != BLOCK) {
@@ -123,8 +126,6 @@ bool fitting(vector<vector<int>>& game_board, vector<vector<int>>& table,
         }
         if (found) return true;
     }
-
-
     return 0;
 }
 
@@ -139,15 +140,12 @@ int blocksFit(vector<vector<int>>& game_board, vector<vector<int>>& table,
             if (fitting(game_board, table, gbInfos, tbInfos, gidx, tidx)) {
                 lastG = gbInfos[gidx].blocks;
                 sum += gbInfos[gidx++].blocks;
-                tbInfos[tidx].blocks = 0;
+                tbInfos[tidx].blocks = -1;
                 if (gidx < glen && gbInfos[gidx].blocks == lastG) tidx = lastT - 1;
             }
             ++tidx;
         }
-        else if (gbInfos[gidx].blocks < tbInfos[tidx].blocks) {
-            lastG = gbInfos[gidx].blocks;
-            ++gidx;
-        }
+        else if (gbInfos[gidx].blocks < tbInfos[tidx].blocks) ++gidx;
         else ++tidx;
     }
     return sum;
@@ -165,7 +163,7 @@ int solution(vector<vector<int>> game_board, vector<vector<int>> table) {
 }
 
 int main() {
-    vector<vector<int>> game_board{ {1, 1, 0}, {0, 0, 0}, {0, 1, 1} };
-    vector<vector<int>> table{ {1, 1, 0}, {0, 1, 0}, {0, 1, 1} };
+    vector<vector<int>> game_board{ {1,1,0,0,1,0}, {0,0,1,0,1,0}, {0,1,1,0,0,1}, {1,1,0,1,1,1}, {1,0,0,0,1,0}, {0,1,1,1,0,0} };
+    vector<vector<int>> table{ {1,0,0,1,1,0}, {1,0,1,0,1,0}, {0,1,1,0,1,1}, {0,0,1,0,0,0}, {1,1,0,1,1,0}, {0,1,0,0,0,0} };
     solution(game_board, table);
 }
