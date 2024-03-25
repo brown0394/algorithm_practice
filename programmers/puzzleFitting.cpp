@@ -1,7 +1,5 @@
-#include <string>
 #include <queue>
 #include <vector>
-#include <algorithm>
 
 #define BLOCK 20
 using namespace std;
@@ -9,12 +7,9 @@ using namespace std;
 struct node {
     int blocks;
     vector<vector<int>> shape;
-    bool operator < (const node& other) {
-        return blocks < other.blocks;
-    }
 };
 
-void bfs(vector<vector<int>>& table, node& info, queue<pair<int, int>>& q, int block) {
+void bfs(vector<vector<int>>& table, node& info, queue<pair<int, int>>& q, const int block) {
     int i, j, row = table.size(), col = table[0].size();
     int sRow = q.front().first, sCol = q.front().second;
     int sRowE = sRow + 1, sColE = sCol + 1;
@@ -65,7 +60,7 @@ void bfs(vector<vector<int>>& table, node& info, queue<pair<int, int>>& q, int b
     }
 }
 
-void getBlockInfo(vector<vector<int>>& table, vector<node>& info, int block) {
+void getBlockInfo(vector<vector<int>>& table, vector<node>& info, const int block) {
     for (int i = 0, len = table.size(); i < len; ++i) {
         for (int j = 0, col = table[i].size(); j < col; ++j) {
             if (table[i][j] == block) {
@@ -174,41 +169,31 @@ bool fitting(vector<node>& gbInfos, vector<node>& tbInfos, int gidx, int tidx) {
     return false;
 }
 
-int blocksFit(vector<vector<int>>& game_board, vector<vector<int>>& table,
-    vector<node>& gbInfos, vector<node>& tbInfos) {
-    int tidx = 0, gidx = 0, sum = 0;
+int blocksFit(vector<node>& gbInfos, vector<node>& tbInfos) {
+    int sum = 0;
     int tlen = tbInfos.size(), glen = gbInfos.size();
-    int lastG = 0, lastT = 0;
-    while (tidx < tlen && gidx < glen) {
-        if (gbInfos[gidx].blocks == tbInfos[tidx].blocks) {
-            if (tbInfos[tidx].blocks != tbInfos[lastT].blocks) lastT = tidx;
-            if (fitting(gbInfos, tbInfos, gidx, tidx)) {
-                lastG = gbInfos[gidx].blocks;
-                sum += gbInfos[gidx++].blocks;
-                tbInfos[tidx].blocks = -1;
-                if (gidx < glen && gbInfos[gidx].blocks == lastG) tidx = lastT - 1;
+    for (int i = 0; i < glen; ++i) {
+        for (int j = 0; j < tlen; ++j) {
+            if (gbInfos[i].blocks == tbInfos[j].blocks && fitting(gbInfos, tbInfos, i, j)) {
+                sum += gbInfos[i].blocks;
+                tbInfos[j].blocks = 0;
+                break;
             }
-            ++tidx;
         }
-        else if (gbInfos[gidx].blocks < tbInfos[tidx].blocks) ++gidx;
-        else ++tidx;
     }
     return sum;
 }
 
 int solution(vector<vector<int>> game_board, vector<vector<int>> table) {
-    int answer = -1;
     vector<node> gbInfos;
     getBlockInfo(game_board, gbInfos, 0);
     vector<node> tbInfos;
     getBlockInfo(table, tbInfos, 1);
-    sort(gbInfos.begin(), gbInfos.end());
-    sort(tbInfos.begin(), tbInfos.end());
-    return blocksFit(game_board, table, gbInfos, tbInfos);
+    return blocksFit(gbInfos, tbInfos);
 }
 
 int main() {
-    vector<vector<int>> game_board{ {1, 0, 1}, {0, 0, 1}, {1, 0, 1} };
-    vector<vector<int>> table{ {0, 1, 0}, {1, 1, 1}, {0, 0, 0} };
+    vector<vector<int>> game_board{ {1, 0, 1}, {0,0,0}, {0, 1, 1} };
+    vector<vector<int>> table{ {1, 1, 0}, {1, 1, 0}, {0, 1, 0} };
     solution(game_board, table);
 }
