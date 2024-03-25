@@ -3,7 +3,6 @@
 #include <vector>
 #include <algorithm>
 
-#define CHECKED 10
 #define BLOCK 20
 using namespace std;
 
@@ -23,31 +22,30 @@ void bfs(vector<vector<int>>& table, node& info, int block) {
     queue<pair<int, int>> q;
     q.push({ info.startI, info.startJ });
     int i, j, len = table.size();
-    const int MARK = BLOCK + info.offset;
     while (!q.empty()) {
         i = q.front().first;
         j = q.front().second;
         q.pop();
         if (i && table[i - 1][j] == block) {
-            table[i - 1][j] = MARK;
+            table[i - 1][j] = info.offset;
             q.push({ i - 1, j });
             ++info.blocks;
             if (i - 1 < info.startI) info.startI = i - 1;
         }
         if (j && table[i][j - 1] == block) {
-            table[i][j - 1] = MARK;
+            table[i][j - 1] = info.offset;
             q.push({ i, j - 1 });
             ++info.blocks;
             if (j - 1 < info.startJ) info.startJ = j - 1;
         }
         if (i + 1 < len && table[i + 1][j] == block) {
-            table[i + 1][j] = MARK;
+            table[i + 1][j] = info.offset;
             q.push({ i + 1, j });
             ++info.blocks;
             if (i + 1 > info.endI) info.endI = i + 1;
         }
         if (j + 1 < len && table[i][j + 1] == block) {
-            table[i][j + 1] = MARK;
+            table[i][j + 1] = info.offset;
             q.push({ i, j + 1 });
             ++info.blocks;
             if (j + 1 > info.endJ) info.endJ = j + 1;
@@ -60,12 +58,9 @@ void getBlockInfo(vector<vector<int>>& table, vector<node>& info, int block) {
     for (int i = 0, len = table.size(); i < len; ++i) {
         for (int j = 0, col = table[i].size(); j < col; ++j) {
             if (table[i][j] == block) {
-                table[i][j] = BLOCK;
-                info.push_back(node{ 1, i, j, i, j, offset++ });
+                table[i][j] = BLOCK + offset++;
+                info.push_back(node{ 1, i, j, i, j, table[i][j] });
                 bfs(table, info.back(), block);
-            }
-            else if (table[i][j] != BLOCK) {
-                table[i][j] = CHECKED;
             }
         }
     }
@@ -82,7 +77,8 @@ bool fitting(vector<vector<int>>& game_board, vector<vector<int>>& table,
         found = true;
         for (int i = 0; i <= gRow; ++i) {
             for (int j = 0; j <= gCol; ++j) {
-                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] != table[tbInfos[tidx].startI + i][tbInfos[tidx].startJ + j]) {
+                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] == gbInfos[gidx].offset &&
+                    table[tbInfos[tidx].startI + i][tbInfos[tidx].startJ + j] != tbInfos[tidx].offset) {
                     found = false;
                     break;
                 }
@@ -93,7 +89,8 @@ bool fitting(vector<vector<int>>& game_board, vector<vector<int>>& table,
         found = true;
         for (int i = 0; i <= gRow; ++i) {
             for (int j = 0; j <= gCol; ++j) {
-                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] != table[tbInfos[tidx].endI - i][tbInfos[tidx].endJ - j]) {
+                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] == gbInfos[gidx].offset && 
+                    table[tbInfos[tidx].endI - i][tbInfos[tidx].endJ - j] != tbInfos[tidx].offset) {
                     found = false;
                     break;
                 }
@@ -106,7 +103,8 @@ bool fitting(vector<vector<int>>& game_board, vector<vector<int>>& table,
         found = true;
         for (int i = 0; i <= gRow; ++i) {
             for (int j = 0; j <= gCol; ++j) {
-                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] != table[tbInfos[tidx].endI - j][tbInfos[tidx].startJ + i]) {
+                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] == gbInfos[gidx].offset &&
+                    table[tbInfos[tidx].endI - j][tbInfos[tidx].startJ + i] != tbInfos[tidx].offset) {
                     found = false;
                     break;
                 }
@@ -117,7 +115,8 @@ bool fitting(vector<vector<int>>& game_board, vector<vector<int>>& table,
         found = true;
         for (int i = 0; i <= gRow; ++i) {
             for (int j = 0; j <= gCol; ++j) {
-                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] != table[tbInfos[tidx].startI + j][tbInfos[tidx].endJ - i]) {
+                if (game_board[gbInfos[gidx].startI + i][gbInfos[gidx].startJ + j] == gbInfos[gidx].offset &&
+                    table[tbInfos[tidx].startI + j][tbInfos[tidx].endJ - i] != tbInfos[tidx].offset) {
                     found = false;
                     break;
                 }
