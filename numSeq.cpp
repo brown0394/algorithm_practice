@@ -28,14 +28,13 @@ int main() {
                 if (num[j] == numSeq[i]) {
                     same = true;
                     count = 1;
-                    int idx = 1;
                     for (int k = j - 1; k >= 0; --k) {
-                        if (i + idx >= len) break;
-                        if (num[k] == numSeq[i + idx]) {
+                        if (i + count >= len) break;
+                        if (num[k] == numSeq[i + count]) {
                             ++count;
                         }
-                        ++idx;
                     }
+                    break;
                 }
             }
             if (same) i += count - 1;
