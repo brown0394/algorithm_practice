@@ -1,7 +1,24 @@
 #include <iostream>
 #include <string>
 #include <bitset>
+#include <set>
 
+struct node {
+	std::bitset<51> bits;
+	int size;
+};
+
+struct bitInfo {
+	long long bits;
+	int size;
+};
+
+bool operator < (const bitInfo& one, const bitInfo& another) {
+	if (one.bits == another.bits) return one.size < another.size;
+	return one.bits < another.bits;
+}
+
+std::set<bitInfo> visitList;
 std::bitset<51> tbits;
 int tsize;
 
@@ -10,7 +27,7 @@ void setBit(std::string& str, std::bitset<51>& bits) {
 		if (str[i] == 'B') bits[i] = true;
 	}
 }
-//visit rcord
+
 void reverseBit(std::bitset<51>& bits, int size) {
 	int half = size >> 1;
 	int idx = 0;
@@ -32,15 +49,22 @@ void reverseBit(std::bitset<51>& bits, int size) {
 	}
 }
 
-bool addAB(std::bitset<51> bits, int size) {
-	if (size == tsize) {
-		if (bits == tbits) return true;
+bool addAB(node info) {
+	if (info.size == tsize) {
+		if (info.bits == tbits) return true;
 		return false;
 	}
-	bool result = addAB(bits, size + 1);
-	bits[size] = true;
-	reverseBit(bits, size + 1);
-	return result || addAB(bits, size + 1);
+	bitInfo binfo{ info.bits.to_ullong(), info.size };
+	auto found = visitList.find(binfo);
+	if (found == visitList.end()) {
+		visitList.insert(binfo);
+		++info.size;
+		bool result = addAB(info);
+		info.bits[info.size - 1] = true;
+		reverseBit(info.bits, info.size);
+		return result || addAB(info);
+	}
+	return false;
 }
 
 int main() {
@@ -52,9 +76,9 @@ int main() {
 		setBit(T, tbits);
 		std::bitset<51> sbits;
 		setBit(S, sbits);
-		printf("%d\n", addAB(sbits, S.size()));
+		printf("%d\n", addAB(node{ sbits, static_cast<int>(S.size()) }));
 	}
 	else if (S == T) printf("1\n");
 	else printf("0\n");
-	
+
 }
