@@ -15,7 +15,12 @@ void resetVisited() {
 	}
 }
 
-bool 
+bool popDiffValid(int a, int b) {
+	if (a >= b) {
+		return (a - b) >= minPop && (a - b) <= maxPop;
+	}
+	return (b - a) >= minPop && (b - a) <= maxPop;
+}
 
 int seq[]{ 1, 0, 1 };
 void dfs(int i, int j) {
@@ -24,15 +29,13 @@ void dfs(int i, int j) {
 	dq.push_back({ i, j });
 	int ij[]{ i, j };
 	for (int k = 0; k < 2; ++k) {
-		if (ij[k] + 1 < n && countries[i + seq[k]][j + seq[k+1]] >= minPop &&
-			countries[i + seq[k]][j + seq[k + 1]] <= maxPop &&
-			!visited[i + seq[k]][j + seq[k + 1]]) {
+		if (ij[k] + 1 < n && !visited[i + seq[k]][j + seq[k + 1]] && 
+			popDiffValid(countries[i][j], countries[i + seq[k]][j + seq[k + 1]])) {
 			visited[i + seq[k]][j + seq[k + 1]] = true;
 			dfs(i + seq[k], j + seq[k + 1]);
 		}
-		if (ij[k] && countries[i - seq[k]][j - seq[k + 1]] >= minPop &&
-			countries[i - seq[k]][j - seq[k + 1]] <= maxPop &&
-			!visited[i - seq[k]][j - seq[k + 1]]) {
+		if (ij[k] && !visited[i - seq[k]][j - seq[k + 1]] &&
+			popDiffValid(countries[i][j], countries[i - seq[k]][j - seq[k + 1]])) {
 			visited[i - seq[k]][j - seq[k + 1]] = true;
 			dfs(i - seq[k], j - seq[k + 1]);
 		}
@@ -50,23 +53,29 @@ int main() {
 	visited.resize(n);
 	bool newVal = true;
 	int days = 0;
-	while (newVal) {
-		++days;
+	while (true) {
+		newVal = false;
 		for (int i = 0; i < n; ++i) {
 			for (int j = 0; j < n; ++j) {
 				if (!visited[i][j]) {
 					sum = 0; count = 0;
 					visited[i][j] = true;
 					dfs(i, j);
-					int newPop = sum / count;
-					if (countries[i][j] != newPop) newVal = false;
-					countries[i][j] = newPop;
-					while (!dq.empty()) {
-						countries[dq.front().first][dq.front().second] = newPop;
-						dq.pop_front();
+					if (dq.size() > 1) {
+						int newPop = sum / count;
+						while (!dq.empty()) {
+							if (countries[dq.front().first][dq.front().second] != newPop) newVal = true;
+							countries[dq.front().first][dq.front().second] = newPop;
+							dq.pop_front();
+						}
 					}
+					else dq.pop_front();
 				}
 			}
 		}
+		if (!newVal) break;
+		++days;
+		resetVisited();
 	}
+	printf("%d", days);
 }
