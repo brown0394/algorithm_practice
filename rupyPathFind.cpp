@@ -1,57 +1,57 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 
 #define INVALID 1000000000
 
+struct node {
+	int i;
+	int j;
+};
+std::vector<std::vector<int>> cave;
+std::vector<std::vector<int>> path;
+bool operator < (const node& one, const node& another) {
+	return path[one.i][one.j] > path[another.i][another.j];
+}
+
 int main() {
 	int n, count = 1;
-	std::vector<std::vector<int>> cave;
-	std::vector<std::vector<int>> path;
 	while (true) {
 		scanf_s("%d", &n);
 		if (!n) break;
 		cave.resize(n, std::vector<int> (n));
-		path.resize(n, std::vector<int>(n));
+		path.resize(n, std::vector<int>(n, INVALID));
 		for (int i = 0; i < n; ++i) {
 			for (int j = 0; j < n; ++j) {
 				scanf_s("%d", &cave[i][j]);
 			}
 		}
+		std::priority_queue<node> pq;
 		path[0][0] = cave[0][0];
-		for (int i = 1; i < n; ++i) {
-			for (int j = 0; j < i; ++j) {
-				if (j && path[j - 1][i] < path[j][i - 1]) {
-					path[j][i] = path[j - 1][i] + cave[j][i];
-				}
-				else {
-					path[j][i] = path[j][i - 1] + cave[j][i];
-				}
-				if (j && path[i][j - 1] < path[i - 1][j]) {
-					path[i][j] = path[i][j - 1] + cave[i][j];
-				}
-				else {
-					path[i][j] = path[i - 1][j] + cave[i][j];
-				}
+		path[1][0] = cave[0][0] + cave[1][0];
+		path[0][1] = cave[0][0] + cave[0][1];
+		pq.push({ 1, 0 });
+		pq.push({ 0, 1 });
+		int i, j;
+		while (!pq.empty()) {
+			i = pq.top().i;
+			j = pq.top().j;
+			pq.pop();
+			if (i && path[i - 1][j] > path[i][j] + cave[i - 1][j]) {
+				path[i - 1][j] = path[i][j] + cave[i - 1][j];
+				pq.push({ i - 1, j });
 			}
-			if (path[i][i - 1] < path[i - 1][i]) {
-				path[i][i] = path[i][i - 1] + cave[i][i];
-				int idx = i;
-				while (--idx >= 0) {
-					if (path[idx][i] > path[idx + 1][i] + cave[idx][i]) {
-						path[idx][i] = path[idx + 1][i] + cave[idx][i];
-					}
-					else break;
-				}
+			if (j && path[i][j - 1] > path[i][j] + cave[i][j - 1]) {
+				path[i][j - 1] = path[i][j] + cave[i][j - 1];
+				pq.push({ i, j - 1 });
 			}
-			else {
-				path[i][i] = path[i - 1][i] + cave[i][i];
-				int idx = i;
-				while (--idx >= 0) {
-					if (path[i][idx] > path[i][idx + 1] + cave[i][idx]) {
-						path[i][idx] = path[i][idx + 1] + cave[i][idx];
-					}
-					else break;
-				}
+			if (i + 1 < n && path[i + 1][j] > path[i][j] + cave[i + 1][j]) {
+				path[i + 1][j] = path[i][j] + cave[i + 1][j];
+				pq.push({ i + 1, j });
+			}
+			if (j + 1 < n && path[i][j + 1] > path[i][j] + cave[i][j + 1]) {
+				path[i][j + 1] = path[i][j] + cave[i][j + 1];
+				pq.push({ i, j + 1 });
 			}
 		}
 		printf("Problem %d: %d\n", count++, path[n - 1][n - 1]);
