@@ -1,41 +1,26 @@
 #include <iostream>
 #include <vector>
+#include <bitset>
 
 int main() {
 	int n;
 	scanf_s("%d", &n);
 	std::vector<int> arr(n);
-	int maxElem = 0;
 	for (int i = 0; i < n; ++i) {
 		scanf_s("%d", &arr[i]);
-		if (maxElem < arr[i]) maxElem = arr[i];
 	}
-	std::vector<int> counter(maxElem + 1);
-	int sum = n;
-	++counter[arr[0]] == 1;
-	int numsInSet = 1;
-	bool forward = true;
-	--n;
-	for (int i = 1; i <= n; ++i) {
-		if (forward) {
-			if (++counter[arr[i]] == 1) ++numsInSet;
-			if (numsInSet == i + 1) ++sum;
-			for (int j = i + 1; j <= n; ++j) {
-				if (--counter[arr[j - i - 1]] == 0) --numsInSet;
-				if (++counter[arr[j]] == 1) ++numsInSet;
-				if (numsInSet == i + 1) ++sum;
-			}
+	std::bitset<100001> isInSet;
+	long long sum = 0;
+	int right = 1;
+	for (int i = 0; i < n; ++i) {
+		if (i) isInSet[arr[i - 1]] = false;
+		isInSet[arr[i]] = true;
+		if (right == i) ++right;
+		while (right < n) {
+			if (isInSet[arr[right]]) break;
+			isInSet[arr[right++]] = true;
 		}
-		else {
-			if (++counter[arr[n-i]] == 1) ++numsInSet;
-			if (numsInSet == i + 1) ++sum;
-			for (int j = n - (i + 1); j >= 0; --j) {
-				if (--counter[arr[j + i + 1]] == 0) --numsInSet;
-				if (++counter[arr[j]] == 1) ++numsInSet;
-				if (numsInSet == i + 1) ++sum;
-			}
-		}
-		forward = !forward;
+		sum += right - i;
 	}
-	printf("%d\n", sum);
+	printf("%lld\n", sum);
 }
