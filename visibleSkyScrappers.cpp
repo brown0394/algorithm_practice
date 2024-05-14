@@ -18,11 +18,10 @@ int main() {
 			++count;
 			while (--left >= 0) {
 				curSlope = (buildings[left] - buildings[i]) / (float)(left - i);
-				if (curSlope > slope) {
+				if (curSlope < slope) {
 					++count;
 					slope = curSlope;
 				}
-				else break;
 			}
 		}
 		if (i + 1 < nBuildings) {
@@ -36,7 +35,6 @@ int main() {
 					++count;
 					slope = curSlope;
 				}
-				else break;
 			}
 		}
 		if (max < count) max = count;
