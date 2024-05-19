@@ -20,44 +20,59 @@ int main() {
 		strs[i].idx = i;
 	}
 	std::sort(strs.begin(), strs.end());
-	int longestMatch = -1;
+	int longestMatch = 0;
+	int one = 0, two = 0;
 	--n;
-	int one, two;
 	for (int i = 0; i < n; ++i) {
-		if (strs[i].str[0] == strs[i + 1].str[0]) {
-			int idx = 0;
-			int cmp = i + 1;
-			while (true) {
-				if (strs[i].str[idx] == 0 || strs[cmp].str[idx] == 0) {
-					break;
+		for (int j = i + 1; j <= n; ++j) {
+			if (strs[i].str[0] == strs[j].str[0]) {
+				int idx = 0;
+				while (true) {
+					if (strs[i].str[idx] == 0 || strs[j].str[idx] == 0) {
+						break;
+					}
+					if (strs[i].str[idx] != strs[j].str[idx]) break;
+					++idx;
 				}
-				if (strs[i].str[idx] != strs[cmp].str[idx]) break;
-				++idx;
-			}
-			if (idx == longestMatch) {
-				if (strs[i].idx < one || strs[i + 1].idx < one) {
-					if (strs[i].idx < strs[i + 1].idx) {
-						one = strs[i].idx;
-						two = strs[i + 1].idx;
+				if (idx == longestMatch) {
+					if (strs[i].idx < strs[one].idx) {
+						one = i;
+						if (strs[j].str[0] != strs[two].str[0]) {
+							two = j;
+						}
+						else if (strs[two].idx > strs[j].idx) {
+							two = j;
+						}
+					}
+					else if (strs[j].idx < strs[one].idx) {
+						one = j;
+						if (strs[i].str[0] != strs[two].str[0]) {
+							two = i;
+						}
+						else if (strs[two].idx > strs[i].idx) {
+							two = i;
+						}
+					}
+					else if (strs[two].str[0] == strs[i].str[0]) {
+						if (strs[two].idx > strs[i].idx && i != one) two = i;
+						else if (strs[two].idx > strs[j].idx && j != one) two = j;
+					}
+
+				}
+				else if (idx > longestMatch) {
+					if (strs[i].idx < strs[j].idx) {
+						one = i;
+						two = j;
 					}
 					else {
-						two = strs[i].idx;
-						one = strs[i + 1].idx;
-					}
-				}
-			}
-			else if (idx > longestMatch) {
-				longestMatch = idx;
-				if (strs[i].idx < strs[i + 1].idx) {
-					one = strs[i].idx;
-					two = strs[i + 1].idx;
-				}
-				else {
-					two = strs[i].idx;
-					one = strs[i + 1].idx;
+						one = j;
+						two = i;
+					} 
+					longestMatch = idx;
 				}
 			}
 		}
+
 	}
 	printf("%s\n%s\n", strs[one].str.c_str(), strs[two].str.c_str());
 }
