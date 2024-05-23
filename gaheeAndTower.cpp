@@ -14,30 +14,40 @@ struct node {
 int main() {
 	int numOfBuildings, fromL, fromR;
 	scanf_s("%d %d %d", &numOfBuildings, &fromL, &fromR);
-	if (fromL + fromR > (numOfBuildings + 1) || !(fromL + fromR)) {
+	if (fromL + fromR > (numOfBuildings + 1)) {
 		printf("-1\n");
 		return 0;
 	}
 	int midVal = fromL + fromR - 1;
-	if (fromL == 1 && fromR > fromL) {
-		//1 on right;
-	}
-	bool first = true;
-	int repeat = fromL - 1;
-	for (int i = 1; i <= repeat; ++i) {
-		if (first) {
-			first = false;
-			printf("%d", i);
+	if (fromL == 1) {
+		printf("%d", fromR);
+		int repeat = numOfBuildings - fromR;
+		for (int i = 0; i < repeat; ++i) {
+			printf(" 1");
 		}
-		else printf(" %d", i);
+		for (int i = fromR-1; i >= 1; --i) {
+			printf(" %d", i);
+		}
+		printf("\n");
 	}
-	for (int i = numOfBuildings - midVal - 1; i > 0; --i) {
-		printf(" %d", repeat);
+	else {
+		printf("1");
+		int repeat = numOfBuildings - fromR - (fromL - 1);
+		for (int i = 0; i < repeat; ++i) {
+			printf(" 1");
+		}
+		for (int i = 2; i < fromL; ++i) {
+			printf(" %d", i);
+		}
+		int val;
+		if (fromR > fromL) val = fromR;
+		else {
+			printf(" %d", fromL);
+			val = fromR - 1;
+		}
+		for (int i = val; i >= 1; --i) {
+			printf(" %d", i);
+		}
+		printf("\n");
 	}
-	if (fromL > 1) printf(" %d", midVal);
-	int til = (midVal - fromR);
-	for (int i = midVal - 1; i > til; --i) {
-		printf(" %d", i);
-	}
-	printf("\n");
 }
