@@ -28,6 +28,7 @@ bool findCombination(int target, std::vector<node>& coins) {
                     available[i][j + adder] = true;
                 }
                 if (j + adder > curMax) curMax = j + adder;
+                if (curMax == target) return true;
             }
         }
         if (lastMax < curMax) lastMax = curMax;
