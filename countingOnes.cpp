@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-unsigned long long getOnes(unsigned long long *dp, int shifted, int cur, int target) {
+unsigned long long getOnes(unsigned long long *dp, unsigned long long shifted, unsigned long long cur, unsigned long long target) {
 	unsigned long long ones = 0, sum = 0;
 	do {
 		cur >>= 1;
@@ -17,7 +17,7 @@ unsigned long long getOnes(unsigned long long *dp, int shifted, int cur, int tar
 int main() {
 	unsigned long long from, to;
 	scanf_s("%lld %lld", &from, &to);
-	unsigned long long dp[51];
+	unsigned long long dp[54];
 	dp[0] = 0;
 	dp[1] = 1;
 	unsigned long long last = 2;
