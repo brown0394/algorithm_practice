@@ -21,6 +21,8 @@ struct node {
 	int move;
 };
 
+std::vector<rc> exits{ {4, 4}, {0, 4}, {0, 0}, {4, 0} };
+
 void convertSpin(int from, int to, rc& coord) {
 	if (from == to) return;
 	int t;
@@ -88,12 +90,10 @@ int bfs() {
 				if (seq[i]) {
 					cur.r = n.j;
 					cur.c = n.k;
-					convertSpin(spin[indexes[n.i]], spin[indexes[n.i + seq[i]]], cur);
+					convertSpin(spin[n.i], spin[n.i + seq[i]], cur);
 					if (visit[indexes[n.i + seq[i]]][cur.r][cur.c]) {
 						if (n.i + seq[i] == 4) {
-							rc check{ 4, 4 };
-							convertSpin(0, spin[indexes[n.i + seq[i]]], check);
-							if (check.r == cur.r && check.c == cur.c) 
+							if (exits[spin[4]].r == cur.r && exits[spin[4]].c == cur.c)
 								return n.move + 1;
 						}
 						visit[indexes[n.i + seq[i]]][cur.r][cur.c] = false;
@@ -102,9 +102,7 @@ int bfs() {
 				}
 				else if (visit[indexes[n.i + seq[i]]][n.j + seq[i + 1]][n.k + seq[i + 2]]) {
 					if (n.i == 4) {
-						rc check{ 4, 4 };
-						convertSpin(0, spin[indexes[n.i]], check);
-						if (check.r == n.j + seq[i + 1] && check.c == n.k + seq[i + 2]) 
+						if (exits[spin[4]].r == n.j + seq[i + 1] && exits[spin[4]].c == n.k + seq[i + 2])
 							return n.move + 1;
 					}
 					visit[indexes[n.i + seq[i]]][n.j + seq[i + 1]][n.k + seq[i + 2]] = false;
@@ -118,7 +116,7 @@ int bfs() {
 
 int findPath() {
 	int min = fail;
-	if (entry[indexes[0]].empty()) return fail;
+	if (entry[indexes[0]].empty() || entry[indexes[4]].empty()) return fail;
 	for (auto first = entry[indexes[0]].begin(), fend = entry[indexes[0]].end(); first != fend; ++first) {
 		spin[0] = *first;
 		for (int i = 0; i < 4; ++i) {
@@ -127,8 +125,8 @@ int findPath() {
 				spin[2] = j;
 				for (int k = 0; k < 4; ++k) {
 					spin[3] = k;
-					for (int l = 0; l < 4; ++l) {
-						spin[4] = l;
+					for (auto last = entry[indexes[4]].begin(), lend = entry[indexes[4]].end(); last != lend; ++last) {
+						spin[4] = (*last + 2) % 4;
 						int result = bfs();
 						if (result < min) {
 							min = result;
@@ -142,6 +140,34 @@ int findPath() {
 	return min;
 }
 
+void print(int idx, int from, int to) {
+	rc cur{ 0, 0 };
+	putchar('\n');
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 5; ++j) {
+			cur.r = i;
+			cur.c = j;
+			convertSpin(0, from, cur);
+			if (maze[idx][cur.r][cur.c]) printf("1 ");
+			else printf("0 ");
+		}
+		putchar('\n');
+	}
+	putchar('\n');
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 5; ++j) {
+			cur.r = i;
+			cur.c = j;
+			convertSpin(0, from, cur);
+			convertSpin(from, to, cur);
+			if (maze[idx][cur.r][cur.c]) printf("1 ");
+			else printf("0 ");
+		}
+		putchar('\n');
+	}
+	putchar('\n');
+}
+
 int main() {
 	int in;
 	int min = fail;
@@ -153,15 +179,14 @@ int main() {
 			}
 		}
 	}
+	//print(3, 0, 2);
 	int result;
 	for (int i = 0; i < 5; ++i) {
 		if (maze[i][0][0]) entry[i].push_back(0);
 		if (maze[i][4][0]) entry[i].push_back(1); 
 		if (maze[i][4][4]) entry[i].push_back(2);
 		if (maze[i][0][4]) entry[i].push_back(3);
-		
 	}
-	int c = 0;
 	do {
 		result = findPath();
 		if (result < min) {
