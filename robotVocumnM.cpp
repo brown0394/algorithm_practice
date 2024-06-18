@@ -23,6 +23,12 @@ void refreshVisited() {
 	}
 }
 
+void refreshVmap() {
+	for (int i = 0; i < row; ++i) {
+		vMap[i] = 0;
+	}
+}
+
 void printMap() {
 	printf("\n");
 	for (int i = 0; i < row; ++i) {
@@ -111,7 +117,7 @@ int minCostDist(node startP) {
 		}
 		visitSeq[i] = i;
 	}
-	while (std::next_permutation(visitSeq.begin(), visitSeq.end())) {
+	do {
 		int last = 20;
 		int dist = 0;
 		for (auto it = visitSeq.begin(), end = visitSeq.end(); it != end; ++it) {
@@ -120,7 +126,7 @@ int minCostDist(node startP) {
 			last = *it;
 		}
 		if (dist < result) result = dist;
-	}
+	} while (std::next_permutation(visitSeq.begin(), visitSeq.end()));
 	flushDistVector();
 	return result;
 }
@@ -151,5 +157,6 @@ int main() {
 			}
 		}
 		printf("%d\n", minCostDist(startP));
+		refreshVmap();
 	}
 }
