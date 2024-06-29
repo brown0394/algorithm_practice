@@ -17,6 +17,7 @@ void adoptTree(std::vector<node>& nodeInfos, int newRoot, int oldRoot, int newEd
 		nodeInfos[oldRoot].children.pop_back();
 	}
 	nodeInfos[newRoot].edges.splice(nodeInfos[newRoot].edges.end(), nodeInfos[oldRoot].edges);
+	nodeInfos[newRoot].edges.push_back(newEdgeN);
 }
 
 void print(std::list<int>& v) {
@@ -81,17 +82,16 @@ int main() {
 		for (auto it = nodeInfos[nodeInfos[1].root].edges.begin(),
 			end = nodeInfos[nodeInfos[1].root].edges.end(); it != end; ++it) {
 			int leaf = 0;
-			if (visitCount[edgeArr[*it].first] == 1) {
+			if (visitCount[edgeArr[*it].first] == 1 && nodeInfos[edgeArr[*it].first].children.empty()) {
 				leaf = edgeArr[*it].first;
 			}
-			else if (visitCount[edgeArr[*it].second] == 1) {
+			else if (visitCount[edgeArr[*it].second] == 1 && nodeInfos[edgeArr[*it].second].children.empty()) {
 				leaf = edgeArr[*it].second;
 			}
 			if (leaf) {
 				int p = nodeInfos[leaf].root;
 				nodeInfos[leaf].root = leaf;
 				nodeInfos[leaf].children.push_back(leaf);
-				nodeInfos[leaf].edges.push_back(*it);
 				nodeInfos[p].children.remove(leaf);
 				nodeInfos[p].edges.erase(it);
 				break;
@@ -100,6 +100,10 @@ int main() {
 	}
 	int one = 0, two = 0;
 	for (int i = 1; i <= nodes; ++i) {
+		if (!nodeInfos[i].root) {
+			nodeInfos[i].root = i;
+			nodeInfos[i].children.push_back(i);
+		}
 		if (nodeInfos[i].root == i) {
 			if (!one) one = i;
 			else {
@@ -107,6 +111,10 @@ int main() {
 				break;
 			}
 		}
+	}
+	if (nodeInfos[one].children.size() == nodeInfos[two].children.size() || !two) {
+		printf("-1\n");
+		return 0;
 	}
 	printf("%d %d", nodeInfos[one].children.size(), nodeInfos[two].children.size());
 	print(nodeInfos[one].children);
