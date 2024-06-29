@@ -1,51 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <unordered_set>
-#include <algorithm>
+#include <list>
+#include <deque>
 
 struct node {
-	int parent, edgeN;
-	std::unordered_set<int> children;
+	int root;
+	std::list<int> children;
+	std::list<int> edges;
 };
 
-void bfs(int idx, std::vector<node>& nodeInfos, std::vector<int>& treeNodes,
-	std::vector<int>& treeEdges) {
-	std::queue<int> q;
-	q.push(idx);
-	while (!q.empty()) {
-		idx = q.front();
-		q.pop();
-		treeNodes.push_back(idx);
-		for (auto it = nodeInfos[idx].children.begin(), end = nodeInfos[idx].children.end(); it != end; ++it) {
-			q.push(*it);
-		}
-		if (nodeInfos[idx].edgeN) treeEdges.push_back(nodeInfos[idx].edgeN);
+void adoptTree(std::vector<node>& nodeInfos, int newRoot, int oldRoot, int newEdgeN) {
+	while (!nodeInfos[oldRoot].children.empty()) {
+		nodeInfos[nodeInfos[oldRoot].children.back()].root = newRoot;
+		nodeInfos[newRoot].children.push_back(nodeInfos[oldRoot].children.back());
+		nodeInfos[oldRoot].children.pop_back();
 	}
+	nodeInfos[newRoot].edges.splice(nodeInfos[newRoot].edges.end(), nodeInfos[oldRoot].edges);
 }
 
-void adoptTree(std::vector<node>& nodeInfos, int newParent, int newChild, int newEdgeN) {
-
-	while (nodeInfos[newChild].parent) {
-		int oldParent = nodeInfos[newChild].parent;
-		int oldEdgeN = nodeInfos[newChild].edgeN;
-		nodeInfos[newChild].parent = newParent;
-		nodeInfos[newChild].edgeN = newEdgeN;
-		nodeInfos[newParent].children.insert(newChild);
-		nodeInfos[oldParent].children.erase(newChild);
-		newEdgeN = oldEdgeN;
-		newParent = newChild;
-		newChild = oldParent;
-	}
-	nodeInfos[newChild].parent = newParent;
-	nodeInfos[newChild].edgeN = newEdgeN;
-	nodeInfos[newParent].children.insert(newChild);
-}
-
-void print(std::vector<int>& v) {
+void print(std::list<int>& v) {
 	printf("\n");
 	if (v.empty()) return;
-	std::sort(v.begin(), v.end());
+	v.sort();
 	auto it = v.begin();
 	printf("%d", *it++);
 	for (auto end = v.end(); it != end; ++it) printf(" %d", *it);
@@ -54,52 +31,46 @@ void print(std::vector<int>& v) {
 int main() {
 	int nodes, edges;
 	scanf_s("%d %d", &nodes, &edges);
-	std::vector<int> tree1Nodes;
-	std::vector<int> tree1Edges;
-	std::vector<int> tree2Nodes;
-	std::vector<int> tree2Edges;
-	std::vector<node> nodeInfos(nodes + 1, {0, 0});
-	std::vector<bool> taken(nodes + 1);
+	std::vector<node> nodeInfos(nodes + 1, { 0 });
+	std::vector<int> visitCount(nodes + 1);
+	std::vector<std::pair<int, int>> edgeArr(edges + 1);
 	int trees = 0;
 	int nodesTaken = 0;
 	int from, to;
 	for (int i = 1; i <= edges; ++i) {
 		scanf_s("%d %d", &from, &to);
-		if (nodeInfos[from].parent && nodeInfos[to].parent) {
-			int root1 = nodeInfos[from].parent, root2 = nodeInfos[to].parent;
-			while (nodeInfos[root1].parent) root1 = nodeInfos[root1].parent;
-			while (nodeInfos[root2].parent) root2 = nodeInfos[root2].parent;
+		edgeArr[i].first = from;
+		edgeArr[i].second = to;
+		if (nodeInfos[from].root && nodeInfos[to].root) {
+			int root1 = nodeInfos[from].root, root2 = nodeInfos[to].root;
 			if (root1 == root2) continue;
-			if (root1 < root2) {
-				adoptTree(nodeInfos, from, to, i);
+			if (nodeInfos[root1].children.size() >= nodeInfos[root2].children.size()) {
+				adoptTree(nodeInfos, nodeInfos[from].root, nodeInfos[to].root, i);
 			}
 			else {
-				adoptTree(nodeInfos, to, from, i);
+				adoptTree(nodeInfos, nodeInfos[to].root, nodeInfos[from].root, i);
 			}
 			--trees;
 			continue;
 		}
-		else if (!nodeInfos[from].parent && nodeInfos[to].parent) {
+		else if (!nodeInfos[from].root && nodeInfos[to].root) {
 			std::swap(from, to);
 		}
-		else if (!nodeInfos[from].parent && !nodeInfos[to].parent) {
+		else if (!nodeInfos[from].root && !nodeInfos[to].root) {
 			if (from > to) {
 				std::swap(from, to);
 			}
-			if (!taken[to] && !taken[from]) ++trees;
+			nodeInfos[from].root = from;
+			nodeInfos[from].children.push_back(from);
+			if (!visitCount[to] && !visitCount[from]) ++trees;
 		}
 
-		nodeInfos[to].parent = from;
-		nodeInfos[from].children.insert(to);
-		nodeInfos[to].edgeN = i;
-		if (!taken[to]) {
-			taken[to] = true;
-			++nodesTaken;
-		}
-		if (!taken[from]) {
-			taken[from] = true;
-			++nodesTaken;
-		}
+		nodeInfos[to].root = nodeInfos[from].root;
+		nodeInfos[nodeInfos[from].root].children.push_back(to);
+		nodeInfos[nodeInfos[from].root].edges.push_back(i);
+		if (!visitCount[to]++) ++nodesTaken;
+		if (!visitCount[from]++) ++nodesTaken;
+
 	}
 	trees += (nodes - nodesTaken);
 	if (trees > 2) {
@@ -107,30 +78,40 @@ int main() {
 		return 0;
 	}
 	else if (trees == 1) {
-		while (!nodeInfos[to].children.empty()) {
-			to = *nodeInfos[to].children.begin();
-		}
-		nodeInfos[nodeInfos[to].parent].children.erase(to);
-		nodeInfos[to].parent = 0;
-		nodeInfos[to].edgeN = 0;
-	}
-	for (int idx = 1; idx <= nodes; ++idx) {
-		if (!nodeInfos[idx].parent) {
-			if (tree1Nodes.empty()) bfs(idx, nodeInfos, tree1Nodes, tree1Edges);
-			else {
-				bfs(idx, nodeInfos, tree2Nodes, tree2Edges);
+		for (auto it = nodeInfos[nodeInfos[1].root].edges.begin(),
+			end = nodeInfos[nodeInfos[1].root].edges.end(); it != end; ++it) {
+			int leaf = 0;
+			if (visitCount[edgeArr[*it].first] == 1) {
+				leaf = edgeArr[*it].first;
+			}
+			else if (visitCount[edgeArr[*it].second] == 1) {
+				leaf = edgeArr[*it].second;
+			}
+			if (leaf) {
+				int p = nodeInfos[leaf].root;
+				nodeInfos[leaf].root = leaf;
+				nodeInfos[leaf].children.push_back(leaf);
+				nodeInfos[leaf].edges.push_back(*it);
+				nodeInfos[p].children.remove(leaf);
+				nodeInfos[p].edges.erase(it);
 				break;
 			}
 		}
 	}
-	if (tree1Nodes.size() == tree2Nodes.size()) {
-		printf("-1\n");
-		return 0;
+	int one = 0, two = 0;
+	for (int i = 1; i <= nodes; ++i) {
+		if (nodeInfos[i].root == i) {
+			if (!one) one = i;
+			else {
+				two = i;
+				break;
+			}
+		}
 	}
-	printf("%d %d", tree1Nodes.size(), tree2Nodes.size());
-	print(tree1Nodes);
-	print(tree1Edges);
-	print(tree2Nodes);
-	print(tree2Edges);
+	printf("%d %d", nodeInfos[one].children.size(), nodeInfos[two].children.size());
+	print(nodeInfos[one].children);
+	print(nodeInfos[one].edges);
+	print(nodeInfos[two].children);
+	print(nodeInfos[two].edges);
 	putchar('\n');
 }
