@@ -81,7 +81,7 @@ int main() {
 				if (j + 1 < col && groundMap[i][j + 1] > 1) {
 					check(groundMap[i][j + 1]);
 				}
-				std::cout << val;
+				std::cout << val % 10;
 			}
 			else std::cout << 0;
 		}
