@@ -17,13 +17,17 @@ void checkPalindrome(int start, int end) {
 }
 
 void checkTourToEnd(int start) {
+	if (start == len) return;
+	if (start == 33) 
+		int a = 10;
 	toursToEndPoint[start] = max;
 	for (const int& to : palindromesStartingFrom[start]) {
-		if (!toursToEndPoint[to]) checkTourToEnd(to);
-		if (toursToEndPoint[to] < toursToEndPoint[start]) toursToEndPoint[start] = toursToEndPoint[to];
+		if (!toursToEndPoint[to + 1]) checkTourToEnd(to + 1);
+		if (toursToEndPoint[to + 1] < toursToEndPoint[start]) toursToEndPoint[start] = toursToEndPoint[to + 1];
 	}
 	if (!toursToEndPoint[start + 1]) checkTourToEnd(start + 1);
-	if (toursToEndPoint[start + 1] < toursToEndPoint[start]) toursToEndPoint[start] = toursToEndPoint[start + 1] + 1;
+	if (toursToEndPoint[start + 1] < toursToEndPoint[start]) toursToEndPoint[start] = toursToEndPoint[start + 1];
+	++toursToEndPoint[start];
 }
 
 int main() {
@@ -31,7 +35,7 @@ int main() {
 	std::cin.tie(0);
 	std::cin >> str;
 	len = str.size();
-	toursToEndPoint.resize(len);
+	toursToEndPoint.resize(len + 1);
 	isSubPalindrome.resize(len);
 	palindromesStartingFrom.resize(len);
 	for (int i = 0; i < len; ++i) {
@@ -43,7 +47,7 @@ int main() {
 			}
 		}
 	}
-	toursToEndPoint[len - 1] = 1;
 	checkTourToEnd(0);
+	toursToEndPoint[len - 1] = 1;
 	std::cout << toursToEndPoint[0] << '\n';
 }
