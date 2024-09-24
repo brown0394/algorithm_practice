@@ -11,19 +11,18 @@ int getMaxBishopCalc(int r, int c, int put);
 int putBishop(int r, int c, int put);
 
 int getMaxBishopCalc(int r, int c, int put) {
-	int j = c + 1;
-	int max = 0;
+	int j = c + 2;
+	bool start = !(j % 2);
 	for (int i = r; i < size; ++i) {
-		for (; j < size; ++j) {
+		for (; j < size; j += 2) {
 			if (chessBoard[i][j] == 1) {
-				int result = putBishop(i, j, put);
-				if (result > max) max = result;
+				return putBishop(i, j, put);
 			}
 		}
-		j = 0;
+		j = start;
+		start = !start;
 	}
-	if (max < put) return put;
-	return max;
+	return put;
 }
 
 void inline putStateDiagonal(int r, int c, int p) {
@@ -51,14 +50,10 @@ int main() {
 	std::cin >> size;
 	chessBoard.resize(size, std::vector<int>(size));
 	diagonalLinks.resize(size, std::vector<std::vector<coord>>(size));
-	coord first{ -1,-1 };
 	for (int i = 0; i < size; ++i) {
 		for (int j = 0; j < size; ++j) {
 			std::cin >> chessBoard[i][j];
 			if (!chessBoard[i][j]) continue;
-			if (first.r < 0) {
-				first.r = i; first.c = j;
-			}
 			int left = j - 1;
 			int right = j + 1;
 			int row = i-1;
@@ -79,5 +74,6 @@ int main() {
 			}
 		}
 	}
-	std::cout << putBishop(first.r, first.c, 0) << '\n';
+	int result = getMaxBishopCalc(0, -2, 0);
+	std::cout << getMaxBishopCalc(0, -1, 0) + result << '\n';
 }
