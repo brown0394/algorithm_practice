@@ -11,23 +11,36 @@ class Solution {
     }
 public:
     std::string longestPalindrome(std::string s) {
-        int start = 0, end = 0;
-        for (int i = 0, size = s.size() - 1; i < size; ++i) {
-            int left = i, right = i + 1;
-            if (checkPalindrome(left, right, 0, s) > ((end - start) + 1)) {
-                start = left + 1;
-                end = right - 1;
-            }
-            if (i) {
-                left = i - 1;
-                right = i + 1;
-                if (checkPalindrome(left, right, 1, s) > ((end - start) + 1)) {
-                    start = left + 1;
-                    end = right - 1;
-                }
-            }
-
+        std::string manachStr{'#'};
+        for (char c : s) {
+            manachStr.push_back(c);
+            manachStr.push_back('#');
         }
-        return s.substr(start, (end - start) + 1);
+        std::vector<int> palindromeLen(manachStr.size());
+        int rightEnd = 0;
+        int palindromeCenter = 0;
+        int longestIdx = 1;
+        for (int i = 0, len = manachStr.size(); i < len; ++i) {
+            int leftSide = 0;
+            if (rightEnd > i) {
+                if (i + palindromeLen[palindromeCenter - (i - palindromeCenter)] < rightEnd) {
+                    palindromeLen[i] = palindromeLen[palindromeCenter - (rightEnd - palindromeCenter)];
+                    continue;
+                }
+                else leftSide = i - (++rightEnd - i);
+            }
+            else {
+                leftSide = i - 1;
+                rightEnd = i + 1;
+            }
+            palindromeCenter = i;
+            while (leftSide >= 0 && rightEnd < len && manachStr[leftSide] == manachStr[rightEnd]) {
+                ++rightEnd;
+                --leftSide;
+            }
+            palindromeLen[i] = --rightEnd - i;
+            if (palindromeLen[longestIdx] < palindromeLen[i]) longestIdx = i;
+        }
+        return s.substr((longestIdx >> 1) - (palindromeLen[longestIdx] >> 1), palindromeLen[longestIdx]);
     }
 };
