@@ -2,7 +2,9 @@ class Solution {
     bool checkStar(string& s, string& p, int pIdx, int sIdx, char preceding) {
         while (pIdx < p.size()) {
             if (sIdx == s.size()) {
-                if (p[pIdx] != '*') return false;
+                if (p[pIdx] != '*' && (pIdx + 1 == p.size() || p[pIdx + 1] != '*')) {
+                    return false;
+                }
                 ++pIdx;
                 while (pIdx < p.size() && p[pIdx] == '*') ++pIdx;
                 continue;
@@ -20,9 +22,17 @@ class Solution {
                     preceding = 0;
                 }
             }
-            else if (p[pIdx] != s[sIdx] && p[pIdx] != '.') return false;
+            else if (p[pIdx] != s[sIdx] && p[pIdx] != '.') {
+                if (pIdx + 1 < p.size() && p[pIdx + 1] == '*') {
+                    pIdx += 2;
+                }
+                else return false;
+            }
             else {
                 ++pIdx;
+                if (pIdx < p.size() && p[pIdx] == '*') {
+                    if (checkStar(s, p, pIdx + 1, sIdx, 0)) return true;
+                }
                 ++sIdx;
             }
         }
@@ -30,11 +40,6 @@ class Solution {
     }
 public:
     bool isMatch(string s, string p) {
-        int sIdx = 0, pIdx = 0;
-        while (pIdx < p.size() && sIdx < s.size() && p[pIdx] != '.' && p[pIdx] != '*') {
-            if (s[sIdx] != p[pIdx]) return false;
-            ++sIdx; ++pIdx;
-        }
-        return checkStar(s, p, pIdx, sIdx, 0);
+        return checkStar(s, p, 0, 0, 0);
     }
 };
