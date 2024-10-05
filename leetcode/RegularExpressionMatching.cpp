@@ -1,9 +1,3 @@
-#include <iostream>
-#include <string>
-#include <vector>
-
-using namespace std;
-
 class Solution {
 public:
     bool isMatch(string s, string p) {
@@ -26,13 +20,16 @@ public:
             }
         }
         for (int i = 1; i < dp.size(); ++i) {
+            bool areTherePossibility = false;
             for (int j = 1; j < dp[i].size(); ++j) {
                 if (p[j - 1] == '.' || p[j - 1] == s[i - 1]) dp[i][j] = dp[i - 1][j - 1];
                 else if (p[j - 1] == '*') {
                     if (j < 2) continue;
-                    dp[i][j] = dp[i][j - 2] || (p[j - 2] == '.' || (p[j - 2] == s[i - 1] && dp[i][j-1]));
+                    dp[i][j] = dp[i][j - 2] || ((p[j - 2] == '.' || p[j - 2] == s[i - 1]) && dp[i-1][j]);
                 }
+                areTherePossibility = areTherePossibility || dp[i][j];
             }
+            if (!areTherePossibility) return false;
         }
         return dp.back().back();
     }
