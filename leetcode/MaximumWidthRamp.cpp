@@ -1,30 +1,26 @@
 class Solution {
-    struct node {
-        int idx;
-        int val;
-        bool operator < (const node& other) {
-            if (val == other.val) return idx < other.idx;
-            return val < other.val;
-        }
-    };
 public:
     int maxWidthRamp(vector<int>& nums) {
         int len = nums.size();
-        vector<node> infos(len);
-        for (int i = 0; i < len; ++i) {
-            infos[i].idx = i;
-            infos[i].val = nums[i];
+        deque<int> biggestValIdx;
+        biggestValIdx.push_back(len - 1);
+        for (int i = len - 2; i >= 0; --i) {
+            if (nums[i] > nums[biggestValIdx.front()]) biggestValIdx.push_front(i);
         }
-        sort(infos.begin(), infos.end());
-        int max = 0;
-        int minIdx = infos[0].idx;
-        for (int i = 1; i < len; ++i) {
-            if (minIdx > infos[i].idx) {
-                minIdx = infos[i].idx;
-                continue;
+        int left = 0;
+        int maxWidth = biggestValIdx.front();
+        int right = 0;
+        len = biggestValIdx.size();
+        while (right < len) {
+            while (left <= biggestValIdx[right] && nums[left] > nums[biggestValIdx[right]]) ++left;
+            while (right < len - 1) {
+                if (nums[biggestValIdx[right + 1]] >= nums[left]) ++right;
+                else break;
             }
-            if (max < infos[i].idx - minIdx) max = infos[i].idx - minIdx;
+            maxWidth = max(maxWidth, biggestValIdx[right] - left);
+            ++left;
+            ++right;
         }
-        return max;
+        return maxWidth;
     }
 };
