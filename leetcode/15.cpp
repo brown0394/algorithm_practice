@@ -7,17 +7,17 @@ public:
             if (i) {
                 while (i < len - 2 && nums[i] == nums[i - 1]) ++i;
             }
-            if (nums[i] > 0) break;
-            for (int j = i + 1; j < len - 1; ++j) {
-                if (nums[i] + nums[j] > 0) break;
-                int third = 0 - (nums[i] + nums[j]);
-                if (answer.empty() || nums[i] != answer.back()[0] ||
-                nums[j] != answer.back()[1] || third != answer.back()[2]) {
-                    auto found = lower_bound(nums.begin() + j + 1, nums.end(), third);
-                    if (found != nums.end() && *found == third) {
-                        answer.push_back({nums[i], nums[j], third});
-                    }
+            int left = i + 1;
+            if (nums[i] + nums[left] > 0) break;
+            int right = len - 1;
+            while (left < right) {
+                int calc = nums[i] + nums[left] + nums[right];
+                if (calc == 0) {
+                    answer.push_back({nums[i], nums[left++], nums[right]});
+                    while(left < right && nums[left - 1] == nums[left]) ++left;
                 }
+                else if (calc < 0) ++left;
+                else --right;
             }
         }
         return answer;
