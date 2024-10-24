@@ -11,38 +11,28 @@
 class Solution {
 public:
     ListNode* mergeKLists(vector<ListNode*>& lists) {
-        int cur = 10000;
-        list<ListNode*> nodeList;
+        auto comp = [](ListNode* one, ListNode* two){
+            return one->val > two->val;
+        };
+        priority_queue<ListNode*, vector<ListNode*>, decltype(comp)> pq;
         ListNode ans;
         ListNode* curNode = &ans;
         for (int i = 0, len = lists.size(); i < len; ++i) {
             if (lists[i] != nullptr) {
-                nodeList.push_back(lists[i]);
-                if (lists[i]->val < cur) cur = lists[i]->val;
+                pq.push(lists[i]);
             }
         }
-        while (!nodeList.empty()) {
-            int next = 10000;
-            for (auto it = nodeList.begin(); it != nodeList.end();) {
-                ListNode* search = (*it);
-                while (search != nullptr) {
-                    if (search->val == cur) {
-                        curNode->next = search;
-                        curNode = search;
-                        search = search->next;
-                    }
-                    else if (search->val > cur) {
-                        if (search->val < next) next = search->val;
-                        break;
-                    }
-                }
-                if (search == nullptr) it = nodeList.erase(it);
-                else {
-                    *it = search;
-                    ++it;
-                }
+
+        while (!pq.empty()) {
+            ListNode* cur = pq.top();
+            pq.pop();
+            int val = cur->val;
+            while (cur != nullptr && cur->val == val) {
+                curNode->next = cur;
+                curNode = cur;
+                cur = cur->next;
             }
-            cur = next;
+            if (cur != nullptr) pq.push(cur);
         }
         return ans.next;
     }
