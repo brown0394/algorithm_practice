@@ -8,6 +8,10 @@ public:
         int cur = 0;
         for (int i = num1.size() - 1; i >= 0; --i) {
             int idx = cur++;
+            if (num1[i] == '0') {
+                if (idx >= ans.size()) ans.push_back(0);
+                continue;
+            }
             carry = 0;
             for (int j = len2-1; j >= 0; --j) {
                 if (idx >= ans.size()) ans.push_back(carry);
