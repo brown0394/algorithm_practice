@@ -2,21 +2,18 @@ class Solution {
 public:
     bool canSortArray(vector<int>& nums) {
         int size = nums.size();
-        vector<pair<int, int>> numsWithBits(size);
+        int lastMax = -1;
         for (int i = 0; i < size; ++i) {
-            numsWithBits[i].first = nums[i];
-            int bit = 1;
-            for (int j = 0; j < 9; ++j) {
-                if (bit & nums[i]) ++numsWithBits[i].second;
-                bit <<= 1;
+            int curMax = nums[i], curMin = nums[i];
+            int bit = __builtin_popcount(nums[i]);
+            for (int j = i + 1; j < size; ++j) {
+                if (__builtin_popcount(nums[j]) != bit) break;
+                curMax = max(curMax, nums[j]);
+                curMin = min(curMin, nums[j]);
+                i = j;
             }
-            int idx = i;
-            while (idx && numsWithBits[idx].first < numsWithBits[idx-1].first) {
-                if (numsWithBits[idx].second != numsWithBits[idx-1].second) return false;
-                swap(numsWithBits[idx], numsWithBits[idx-1]);
-                --idx;
-            }
-            
+            if (curMin < lastMax) return false;
+            lastMax = curMax;
         }
         return true;
     }
