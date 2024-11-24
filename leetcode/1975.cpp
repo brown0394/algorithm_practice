@@ -21,7 +21,6 @@ public:
                 ++negRs;
             }
         }
-        cout << minVal << endl;
         if (negRs % 2 == 0 || minVal == 0) {
             return sum;
         }
