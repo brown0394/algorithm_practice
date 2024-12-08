@@ -1,22 +1,41 @@
 class Solution {
-    static bool compare(int value, vector<int>& two) {
-        return value < two[0];
-    }
+    struct info {
+        int time;
+        int val;
+        bool isStart;
+
+        bool operator <(const info& other) {
+            if (time == other.time) {
+                if (isStart && !other.isStart) return true;
+                return false;
+            }
+            return time < other.time;
+        }
+    };
 public:
     int maxTwoEvents(vector<vector<int>>& events) {
         int size = events.size();
-        sort(events.begin(), events.end());
-        vector<int> maxVs(size);
-        maxVs[size-1] = events[size-1][2];
-        for (int i = size-2; i > 0; --i) {
-            maxVs[i] = max(maxVs[i+1], events[i][2]);
+        vector<info> infos(size * 2);
+        for (int i = 0, cur = 0; i < size; ++i) {
+            infos[cur].time = events[i][0];
+            infos[cur].val = events[i][2];
+            infos[cur++].isStart = true;
+            infos[cur].val = events[i][2];
+            infos[cur].time = events[i][1];
+            infos[cur++].isStart = false;
         }
-        int ans = 0;
+        sort(infos.begin(), infos.end());
+        int maxV = 0;
+        int tilMax = 0;
+        size <<= 1;
         for (int i = 0; i < size; ++i) {
-            int next = upper_bound(events.begin()+i+1, events.end(), events[i][1], compare) - events.begin();
-            if (next == size) ans = max(ans, events[i][2]);
-            else ans = max(ans, events[i][2] + maxVs[next]);
+            if (infos[i].isStart) {
+                maxV = max(maxV, infos[i].val + tilMax);
+            }
+            else {
+                tilMax = max(tilMax, infos[i].val);
+            }
         }
-        return ans;
+        return maxV;
     }
 };
