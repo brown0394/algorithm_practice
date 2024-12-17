@@ -1,26 +1,34 @@
 class Solution {
 public:
     string repeatLimitedString(string s, int repeatLimit) {
-        sort(s.rbegin(), s.rend());
         string ans;
         int size = s.size();
         ans.reserve(size);
-        int cur = 0;
+        int counts[26]{0};
+        for (int i = 0; i < size; ++i) {
+            ++counts[s[i] - 'a'];
+        }
+        int cur = 25;
+        while (cur >= 0 && !counts[cur]) --cur;
         int count = 0;
-        int next = 1;
-        while (next < size && s[next] == s[cur]) ++next;
-        while (cur < size) {
+        int next = cur-1;
+        while (next >= 0 && !counts[next]) --next;
+        while (cur >= 0) {
             do {
-                ans.push_back(s[cur++]);
+                --counts[cur];
+                ans.push_back(cur + 'a');
                 ++count;
-            } while(cur < size && count < repeatLimit && s[cur] == s[cur - 1]);
-            if (next == size) break;
+            } while(cur >= 0 && count < repeatLimit && counts[cur]);
+            if (next < 0) break;
             count = 0;
-            if (cur < size && s[cur] != s[cur-1]) {
-                cur = next;
-                while (next < size && s[next] == s[cur]) ++next;
+            if (cur >= 0 && !counts[cur]) {
+                cur = next--;
             }
-            else ans.push_back(s[next++]);
+            else {
+                ans.push_back(next + 'a');
+                --counts[next];
+            }
+            while (next >= 0 && !counts[next]) --next;
         }
         return ans;
     }
