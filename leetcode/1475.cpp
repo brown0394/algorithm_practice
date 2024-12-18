@@ -1,13 +1,14 @@
 class Solution {
 public:
     vector<int> finalPrices(vector<int>& prices) {
-        for (int i = 0, size = prices.size(); i < size; ++i) {
-            for (int j = i + 1; j < size; ++j) {
-                if (prices[i] >= prices[j]) {
-                    prices[i] -= prices[j];
-                    break;
-                }
+        stack<int> stk;
+        stk.push(0);
+        for (int i = 1, size = prices.size(); i < size; ++i) {
+            while (!stk.empty() && prices[stk.top()] >= prices[i]) {
+                prices[stk.top()] -= prices[i];
+                stk.pop();
             }
+            stk.push(i);
         }
         return prices;
     }
