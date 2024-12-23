@@ -1,43 +1,32 @@
 class Solution {
 public:
     int minimumOperations(TreeNode* root) {
-        auto comp = [](TreeNode* one, TreeNode* two)->bool {
-            return one->val > two->val;
-            };
-        vector<TreeNode*> pq;
-        vector<TreeNode*> pq2;
-        vector<TreeNode*>* curpq = &pq;
-        vector<TreeNode*>* nextpq = &pq2;
-        deque<TreeNode*> dq;
-        dq.push_back(root);
-        curpq->push_back(root);
+        queue<TreeNode*> q;
+        q.push(root);
         int total = 0;
-        while (!dq.empty()) {
-            int size = dq.size();
+        while (!q.empty()) {
+            int size = q.size();
+            vector<int> origin(size);
+            vector<int> sorted(size);
+            unordered_map<int, int> idxmap;
             for (int i = 0; i < size; ++i) {
-                pop_heap(curpq->begin(), curpq->end(), comp);
-                TreeNode* cur = curpq->back();
-                TreeNode* front = dq.front();
-                dq.pop_front();
-                if (cur->val != front->val) {
-                    swap(cur->val, front->val);
-                    make_heap(curpq->begin(), curpq->end(), comp);
-                    pop_heap(curpq->begin(), curpq->end(), comp);
+                TreeNode* v = q.front();
+                q.pop();
+                origin[i] = v->val;
+                sorted[i] = v->val;
+                idxmap[v->val] = i;
+                if (v->left != nullptr) q.push(v->left);
+                if (v->right != nullptr) q.push(v->right);
+            }
+            sort(sorted.begin(), sorted.end());
+            for (int i = 0; i < size; ++i) {
+                if (sorted[i] != origin[i]) {
                     ++total;
-                }
-                curpq->pop_back();
-                if (front->left != nullptr) {
-                    dq.push_back(front->left);
-                    nextpq->push_back(front->left);
-                    push_heap(nextpq->begin(), nextpq->end(), comp);
-                }
-                if (front->right != nullptr) {
-                    dq.push_back(front->right);
-                    nextpq->push_back(front->right);
-                    push_heap(nextpq->begin(), nextpq->end(), comp);
+                    int swapidx = idxmap[sorted[i]];
+                    idxmap[origin[i]] = swapidx;
+                    swap(origin[i], origin[swapidx]);
                 }
             }
-            swap(curpq, nextpq);
         }
         return total;
     }
