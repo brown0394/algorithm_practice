@@ -1,21 +1,23 @@
 class Solution {
-    int t;
-    vector<unordered_map<int, int>> memo;
-    int check(vector<int>& nums, int idx, int sum) {
-        if (idx == nums.size()) {
-            if (sum == t) return 1;
-            return 0;
-        }
-        auto found = memo[idx].find(sum);
-        if (found != memo[idx].end()) return found->second;
-        int possibility = check(nums, idx + 1, sum + nums[idx]);
-        possibility += check(nums, idx + 1, sum - nums[idx]);
-        return memo[idx][sum] = possibility;
-    }
 public:
     int findTargetSumWays(vector<int>& nums, int target) {
-        memo.resize(nums.size());
-        t = target;
-        return check(nums, 0, 0);
+        unordered_map<int, int> m1;
+        unordered_map<int, int> m2;
+        unordered_map<int, int>* cur = &m1;
+        unordered_map<int, int>* next = &m2;
+        ++(*cur)[nums[0]];
+        ++(*cur)[-nums[0]];
+        for (int i = 1, size = nums.size(); i < size; ++i) {
+            auto it = cur->begin();
+            while(!cur->empty()) {
+                (*next)[it->first + nums[i]] += it->second;
+                (*next)[it->first - nums[i]] += it->second;
+                it = cur->erase(it);
+            }
+            swap(cur, next);
+        }
+        auto found = cur->find(target);
+        if (found == cur->end()) return 0;
+        return found->second;
     }
 };
