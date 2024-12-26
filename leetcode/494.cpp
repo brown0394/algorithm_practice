@@ -1,19 +1,21 @@
 class Solution {
     int t;
-    int ans;
-    void check(vector<int>& nums, int idx, int sum) {
+    vector<unordered_map<int, int>> memo;
+    int check(vector<int>& nums, int idx, int sum) {
         if (idx == nums.size()) {
-            if (sum == t) ++ans;
-            return;
+            if (sum == t) return 1;
+            return 0;
         }
-        check(nums, idx + 1, sum + nums[idx]);
-        check(nums, idx + 1, sum - nums[idx]);
+        auto found = memo[idx].find(sum);
+        if (found != memo[idx].end()) return found->second;
+        int possibility = check(nums, idx + 1, sum + nums[idx]);
+        possibility += check(nums, idx + 1, sum - nums[idx]);
+        return memo[idx][sum] = possibility;
     }
 public:
     int findTargetSumWays(vector<int>& nums, int target) {
+        memo.resize(nums.size());
         t = target;
-        ans = 0;
-        check(nums, 0, 0);
-        return ans;
+        return check(nums, 0, 0);
     }
 };
