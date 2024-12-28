@@ -10,25 +10,36 @@ public:
             subarrays[i-k+1] = cur;
         }
         vector<pair<int, int>> possibleOnes(nums.size() - (k*2) - (k-1));
-        int idx = k;
-        possibleOnes[0].first = idx++;
-        for (int i = 1; i < possibleOnes.size(); ++i) {
-            if (subarrays[possibleOnes[i-1].first] < subarrays[idx]) {
-                possibleOnes[i].first = idx;
-            }
-            else possibleOnes[i].first = possibleOnes[i-1].first;
-            ++idx;
-        }
-        idx = subarrays.size()-k;
-        possibleOnes.back().second = idx--;
+        int thirdIdx = subarrays.size()-1;
+        int secondIdx = thirdIdx - k;
+        int third = thirdIdx;
+        int last = subarrays[thirdIdx] + subarrays[secondIdx];
+        possibleOnes.back().first = secondIdx--;
+        possibleOnes.back().second = thirdIdx--;
         for (int i = possibleOnes.size()-2; i >= 0; --i) {
-            if (subarrays[possibleOnes[i+1].second] < subarrays[idx]) {
-                possibleOnes[i].second = idx;
+            if (subarrays[third] <= subarrays[thirdIdx]) {
+                third = thirdIdx;
             }
-            else possibleOnes[i].second = possibleOnes[i+1].second;
-            ++idx;
+            if (subarrays[secondIdx] + subarrays[third] >= last) {
+                last = subarrays[secondIdx] + subarrays[third];
+                possibleOnes[i].first = secondIdx;
+                possibleOnes[i].second = third;
+            }
+            else possibleOnes[i] = possibleOnes[i+1];
+            --secondIdx;
+            --thirdIdx;
         }
-        for (auto& p : possibleOnes) cout << p.first << " " << p.second << endl;
-        return subarrays;
+        last = subarrays[0] + subarrays[possibleOnes[0].first] + subarrays[possibleOnes[0].second];
+        vector<int> ans{0, possibleOnes[0].first, possibleOnes[0].second};
+        for (int i = 1; i < possibleOnes.size(); ++i) {
+            cur = subarrays[i] + subarrays[possibleOnes[i].first] + subarrays[possibleOnes[i].second];
+            if (last < cur) {
+                last = cur;
+                ans[0] = i;
+                ans[1] = possibleOnes[i].first;
+                ans[2] = possibleOnes[i].second;
+            }
+        }
+        return ans;
     }
 };
