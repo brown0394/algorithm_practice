@@ -1,7 +1,7 @@
 class NumberContainers {
 public:
     unordered_map<int, int> idxNum;
-    unordered_map<int, set<int>> numIdx;
+    unordered_map<int, priority_queue<int, vector<int>, greater<int>>> numIdx;
     NumberContainers() {
     }
     
@@ -10,23 +10,21 @@ public:
         if (foundIdxNum == idxNum.end())
             idxNum[index] = number;
         else
-        {
-            if (foundIdxNum->second == number)
-                return;
-            if (numIdx[foundIdxNum->second].size() == 1)
-                numIdx.erase(foundIdxNum->second);
-            else
-                numIdx[foundIdxNum->second].erase(index);
             foundIdxNum->second = number;
-        }
-        numIdx[number].insert(index);
+        numIdx[number].push(index);
     }
     
     int find(int number) {
         auto found = numIdx.find(number);
         if (found == numIdx.end())
             return -1;
-        return *found->second.begin();
+        while (found->second.empty() == false)
+        {
+            if (idxNum[found->second.top()] == number)
+                return found->second.top();
+            found->second.pop();
+        }
+        return -1;
     }
 };
 
