@@ -13,36 +13,22 @@ public:
     ListNode* modifiedList(vector<int>& nums, ListNode* head) {
         sort(nums.begin(), nums.end());
         
-        ListNode* cur = head;
-        ListNode* last = head;
+        ListNode tempHead;
+        tempHead.next = head;
+        ListNode* cur = &tempHead;
         vector<int>::iterator found;
         vector<int>::iterator endit = nums.end();
-        while( last != nullptr )
+        while(cur->next != nullptr)
         {
-            found = lower_bound(nums.begin(), endit, last->val);
-            if ( found == endit || *found != last->val)
-                break;
-            last = last->next;
-        }
-        head = last;
-
-        if (last == nullptr)
-            return nullptr;
-        cur = last->next;
-
-        while(cur != nullptr)
-        {
-            found = lower_bound(nums.begin(), endit, cur->val);
-            if ( found != endit && *found == cur->val)
+            found = lower_bound(nums.begin(), endit, cur->next->val);
+            if ( found != endit && *found == cur->next->val)
             {
-                last->next = cur->next;
-                cur = cur->next;
+                cur->next = cur->next->next;
                 continue;
             }
-            last = cur;
             cur = cur->next;
         }
 
-        return head;
+        return tempHead.next;
     }
 };
